@@ -1,0 +1,20 @@
+{
+  "default": {
+    "FAC": "facility entities are limited to buildings and other permanent man-made structures such as buildings, airports, highways, bridges.",
+    "GPE": "geographical political entities are geographical regions defined by political and or social groups such as countries, nations, regions, cities, states, government and its people.",
+    "LOC": "location entities are limited to geographical entities such as geographical areas and landmasses, mountains, bodies of water, and geological formations.",
+    "ORG": "organization entities are limited to companies, corporations, agencies, institutions and other groups of people.",
+    "PER": "a person entity is limited to human including a single individual or a group.",
+    "VEH": "vehicle entities are physical devices primarily designed to move, carry, pull or push the transported object such as helicopters, trains, ship and motorcycles.",
+    "WEA": "weapon entities are limited to physical devices such as instruments for physically harming such as guns, arms and gunpowder."
+  },
+  "labels": [
+    "GPE",
+    "ORG",
+    "PER",
+    "FAC",
+    "VEH",
+    "LOC",
+    "WEA"
+  ]
+}

@@ -1,0 +1,11 @@
+numpy
+awscli
+requests
+scipy
+argparse
+tqdm
+typing
+pathlib
+boto3
+torch==1.1.0
+pytorch-pretrained-bert==0.6.1

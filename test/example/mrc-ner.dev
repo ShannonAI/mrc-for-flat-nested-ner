@@ -1,0 +1,39 @@
+[{
+    "context": "some reform - minded catholics believe that it would be healthier for the church if popes resigned when their health failed .",
+    "end_position": [
+      13
+    ],
+    "entity_label": "ORG",
+    "impossible": false,
+    "qas_id": "216.2",
+    "query": "organization entities are limited to companies, corporations, agencies, institutions and other groups of people.",
+    "span_position": [
+      "12;13"
+    ],
+    "start_position": [
+      12
+    ]
+  },
+  {
+    "context": "some reform - minded catholics believe that it would be healthier for the church if popes resigned when their health failed .",
+    "end_position": [
+      4,
+      15,
+      18
+    ],
+    "entity_label": "PER",
+    "impossible": false,
+    "qas_id": "216.3",
+    "query": "a person entity is limited to human including a single individual or a group.",
+    "span_position": [
+      "0;4",
+      "15;15",
+      "18;18"
+    ],
+    "start_position": [
+      0,
+      15,
+      18
+    ]
+  }
+  ]
