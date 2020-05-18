@@ -2,7 +2,7 @@
 The repository contains the code of the recent research advances in [Shannon.AI](http://www.shannonai.com). 
 
 **A Unified MRC Framework for Named Entity Recognition** <br>
-Xiaoya Li\*, Jingrong Feng\*, Yuxian Meng, Qinghong Han, Fei Wu and Jiwei Li<br>
+Xiaoya Li, Jingrong Feng, Yuxian Meng, Qinghong Han, Fei Wu and Jiwei Li<br>
 In ACL 2020. [paper](https://arxiv.org/abs/1910.11476)<br>
 If you find this repo helpful, please cite the following:
 ```latex
