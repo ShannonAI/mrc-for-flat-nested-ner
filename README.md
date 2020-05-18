@@ -21,8 +21,8 @@ For any question, please feel free to contact xiaoya_li@shannonai.com or post Gi
 2. [Experimental Results on Flat/Nested NER Datasets](#experimental-results-on-flat/nested-ner-datasets)
 3. [Dependencies](#dependencies)
 4. [Data Preprocess](#data-preprocess)
-5. [Start Train BERT MRC-NER Model](#start-train-bert-mrc-ner-model)
-6. [Evaluate Trained Model](#evaluate-trained-model)
+5. [Training BERT MRC-NER Model](#start-train-bert-mrc-ner-model)
+6. [Evaluating the Trained Model](#evaluate-trained-model)
 7. [Descriptions of Directories](#descriptions-of-directories)
 8. [Contact](#contact)
 
@@ -212,7 +212,7 @@ After that, `$PATH-TO-MRC-ZhMSRA$/mrc-dev_msra.json` contains a list of jsons:
 ```
 
 
-## Start Train BERT MRC-NER Model
+## Training BERT MRC-NER Model
 
 You can directly use the following commands to train the **MRC-NER** model with some minor changes.<br>
 `data_sign` should take the value of  `[conll03, zh_msra, zh_onto, en_onto, genia, ace2004, ace2005, kbp17, resume]`. <br> 
@@ -257,7 +257,7 @@ CUDA_VISIBLE_DEVICES=0 python3 ${FOLDER_PATH}/run/train_bert_mrc.py \
 ```
 
 
-## Evaluate Trained Model
+## Evaluating the Trained Model
 
 You can directly use the following commands to evaluate the **MRC-NER** model after training.<br>
 `data_sign`should take the value of `[conll03, zh_msra, zh_onto, en_onto, genia, ace2004, ace2005, kbp17, resume]`. <br> 
