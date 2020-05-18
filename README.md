@@ -18,11 +18,11 @@ For any question, please feel free to contact xiaoya_li@shannonai.com or post Gi
 
 ## Contents 
 1. [Overview](#overview)
-2. [Experimental Results on Flat/Nested NER Datasets](#experimental-results-on-flat/nested-ner-datasets)
+2. [Experimental Results on Flat/Nested NER Datasets](#experimental-results-on-flat-nested-ner-datasets)
 3. [Dependencies](#dependencies)
 4. [Data Preprocess](#data-preprocess)
-5. [Training BERT MRC-NER Model](#start-train-bert-mrc-ner-model)
-6. [Evaluating the Trained Model](#evaluate-trained-model)
+5. [Training BERT MRC-NER Model](#training-bert-mrc-ner-model)
+6. [Evaluating the Trained Model](#evaluating-the-trained-model)
 7. [Descriptions of Directories](#descriptions-of-directories)
 8. [Contact](#contact)
 
