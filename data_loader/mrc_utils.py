@@ -4,8 +4,6 @@
 
 
 # Author: Xiaoy LI 
-# Last update: 2019.03.29 
-# First create: 2019.02.13 
 # Description:
 # mrc_utils.py 
 

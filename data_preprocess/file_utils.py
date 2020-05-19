@@ -3,9 +3,7 @@
 
 
 
-# Author: Xiaoy LI 
-# Last update: 2019.04.19
-# First create: 2019.03.23 
+# Author: Xiaoy LI  
 # Description;
 # some usefule file utils 
 

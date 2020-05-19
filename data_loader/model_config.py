@@ -4,8 +4,6 @@
 
 
 # Author: Xiaoy LI 
-# Last update: 2019.03.25 
-# First create: 2019.03.25
 # Description:
 # config files used for model init 
 

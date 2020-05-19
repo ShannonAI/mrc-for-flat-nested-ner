@@ -4,8 +4,6 @@
 
 
 # Author: Xiaoy LI 
-# Last update: 2019.04.22 
-# First create: 2019.01.22 
 # Description:
 # bert_tokenizer to solve the span of tagging 
 

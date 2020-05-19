@@ -4,8 +4,6 @@
 
 
 # Author: xiaoy li 
-# last update: 2020.05.03 
-# first create: 2020.05.03 
 # description:
 # test query_ner_evaluation 
 

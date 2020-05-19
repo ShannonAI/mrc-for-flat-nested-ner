@@ -4,8 +4,6 @@
 
 
 # Author: Xiaoy LI 
-# Last update: 2019.04.02 
-# First create: 2019.04.02 
 # Description:
 # 
 

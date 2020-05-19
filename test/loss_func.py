@@ -4,8 +4,6 @@
 
 
 # Author: yuxian meng, xiaoy li 
-# first create: 2020.05.03 
-# last udpate: 2020.05.03 
 # description:
 # 
 

@@ -3,8 +3,6 @@
 
 
 # Author: Xiaoy LI
-# Last update: 2019.03.23 
-# First create: 2019.03.23 
 # Description:
 # bert_basic_model.py
 

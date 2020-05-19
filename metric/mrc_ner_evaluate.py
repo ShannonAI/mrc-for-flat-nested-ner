@@ -3,9 +3,7 @@
 
 
 
-# Author: xiaoy li 
-# first create: 2020.05.07 
-# last update: 2020.05.07 
+# Author: xiaoy li  
 # description:
 # 
 

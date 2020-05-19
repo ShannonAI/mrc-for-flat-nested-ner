@@ -4,8 +4,6 @@
 
 
 # Author: Xiaoy LI 
-# Last update: 2019.04.30 
-# First create: 2019.04.30 
 # Description:
 # mrc_ner_data_processor.py
 

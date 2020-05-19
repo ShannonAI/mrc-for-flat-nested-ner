@@ -4,8 +4,6 @@
 
 
 # Author: Xiaoy LI 
-# Last update: 2019.03.23 
-# First create: 2019.03.23 
 # Description:
 # run_machine_comprehension.py 
 # Please Notice that the data should contain 

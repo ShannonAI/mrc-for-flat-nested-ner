@@ -4,8 +4,6 @@
 
 
 # Author: Xiaoy Li 
-# last update: 2020.04.24 
-# first create: 2019.03.23 
 # description:
 # data_generate.py 
 # transform data from sequence labeling to mrc formulation 

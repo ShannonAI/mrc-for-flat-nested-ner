@@ -4,8 +4,6 @@
 
 
 # Author: Xiaoy LI 
-# Last update: 2019.04.28 
-# First create: 2019.03.23 
 # Description:
 # Description:
 # Bert Model for MRC-Based NER Task

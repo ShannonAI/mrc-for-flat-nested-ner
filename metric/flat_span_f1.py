@@ -5,7 +5,6 @@
 
 @version: 1.0
 @file: span_f1
-@time: 2020/5/5 20:13
 """
 
 import json

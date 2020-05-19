@@ -4,8 +4,6 @@
 
 
 # Author: Xiaoy LI 
-# Last update: 2019.04.04 
-# First create: 2019.03.29
 # Description:
 # bert_layernorm.py
 

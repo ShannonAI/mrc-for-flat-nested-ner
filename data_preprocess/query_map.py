@@ -4,8 +4,6 @@
 
 
 # Author: Xiaoy Li 
-# last update: 2020.04.24 
-# first create: 2020.04.24 
 # description:
 # query_map.py 
 # ---------------------------------------------

@@ -4,8 +4,6 @@
 
 
 # Author: Xiaoy LI 
-# last udpate: 2019.04.23 
-# first create: 2019.02.03 
 # description:
 # utilies for sequence tagging tasks for entity-level tasks 
 # (such as NER)

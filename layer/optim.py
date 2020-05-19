@@ -4,8 +4,6 @@
 
 
 # Author: hugging face -- transformer
-# last update: 2019.04.03 
-# first create: 2019.03.01
 # description:
 # 
 
