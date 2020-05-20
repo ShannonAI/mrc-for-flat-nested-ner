@@ -7,7 +7,6 @@
 # Description:
 # train_tagger for the dataset of msra.sh
 
-DATE=2020-05-08
 EXP-ID=22_1
 # time_id
 
@@ -38,7 +37,7 @@ n_gpu=1
 seed=2333
 data_sign=zh_onto 
 model_sign=mrc
-output_path=${EXPORT_DIR}/${data_sign}/${model_sign}-${DATE}-${max_seq_length}-${learning_rate}-${train_batch_size}-${gradient_accumulation_step}
+output_path=${EXPORT_DIR}/${data_sign}/${model_sign}-${max_seq_length}-${learning_rate}-${train_batch_size}-${gradient_accumulation_step}
 
 
 mkdir -p ${output_path}

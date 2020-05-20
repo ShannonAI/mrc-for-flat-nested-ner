@@ -149,6 +149,8 @@ def bmes_decode(char_label_list: List[Tuple[str, str]]) -> Tuple[str, List[Tag]]
                 tags.append(Tag(entity, label[2:], idx, end))
                 idx = end
             continue
+        else:
+            continue 
 
     sentence = "".join(term for term, _ in char_label_list)
     return sentence, tags

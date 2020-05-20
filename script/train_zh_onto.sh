@@ -3,7 +3,6 @@
 # Author: Xiaoy Li 
 # On One 12G TITAN XP
 
-DATE=2020-05-12
 EXP-ID=22_1
 FOLDER_PATH=/PATH-TO-REPO/mrc-for-flat-nested-ner 
 DATA_PATH=/PATH-TO-BERT_MRC-DATA/zh_ontonotes4
@@ -31,7 +30,7 @@ data_sign=zh_onto
 export_model=True
 model_sign=mrc-ner
 data_cache=True
-output_path=${EXPORT_DIR}/${data_sign}/${model_sign}-${data_sign}-${DATE}-${EXP_ID}-${max_seq_length}-${learning_rate}-${train_batch_size}-${dropout}
+output_path=${EXPORT_DIR}/${data_sign}/${model_sign}-${data_sign}-${EXP_ID}-${max_seq_length}-${learning_rate}-${train_batch_size}-${dropout}
 
 
 mkdir -p ${output_path}

@@ -8,7 +8,6 @@
 # train_tagger for the dataset of msra.sh
 
 MACHINE=gpu11
-DATE=2020.05.13
 EXP_ID=15_2
 
 FOLDER_PATH=/data/xiaoya/work/gitrepo/mrc-for-flat-nested-ner
@@ -41,7 +40,7 @@ entity_sign=nested
 save_model=yes
 export_model=True
 model_sign=mrc
-output_path=${EXPORT_DIR}/${data_sign}/${model_sign}-${DATE}-${max_seq_length}-${learning_rate}-${train_batch_size}-${EXP_ID}
+output_path=${EXPORT_DIR}/${data_sign}/${model_sign}-${max_seq_length}-${learning_rate}-${train_batch_size}-${EXP_ID}
 
 
 mkdir -p ${output_path}
