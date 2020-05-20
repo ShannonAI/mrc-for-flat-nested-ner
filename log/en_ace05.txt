@@ -1,0 +1,177 @@
+Please notice that merge the args_dict and json_config ... ...
+{
+  "bert_frozen": "false",
+  "hidden_size": 768,
+  "hidden_dropout_prob": 0.2,
+  "classifier_sign": "multi_nonlinear",
+  "clip_grad": 1,
+  "bert_config": {
+    "attention_probs_dropout_prob": 0.1,
+    "hidden_act": "gelu",
+    "hidden_dropout_prob": 0.1,
+    "hidden_size": 768,
+    "initializer_range": 0.02,
+    "intermediate_size": 3072,
+    "max_position_embeddings": 512,
+    "num_attention_heads": 12,
+    "num_hidden_layers": 12,
+    "type_vocab_size": 2,
+    "vocab_size": 30522
+  },
+  "config_path": "/home/shannon/mrc-for-flat-nested-ner/config/en_bert_base_uncased.json",
+  "data_dir": "/home/shannon/dataset/en_ace05",
+  "bert_model": "/home/shannon/BERT_BASE_DIR/uncased_L-12_H-768_A-12",
+  "task_name": null,
+  "max_seq_length": 150,
+  "train_batch_size": 32,
+  "dev_batch_size": 32,
+  "test_batch_size": 32,
+  "checkpoint": 600,
+  "learning_rate": 4e-05,
+  "num_train_epochs": 10,
+  "warmup_proportion": -1.0,
+  "local_rank": -1,
+  "gradient_accumulation_steps": 1,
+  "seed": 2333,
+  "export_model": false,
+  "output_dir": "/home/shannon/export_dir/mrc-ner/ace2005/mrc-2020.05.14-150-4e-5-32-18_1",
+  "data_sign": "ace2005",
+  "weight_start": 1.0,
+  "weight_end": 1.0,
+  "weight_span": 1.0,
+  "entity_sign": "nested",
+  "n_gpu": 2,
+  "dropout": 0.2
+}
+-*--*--*--*--*--*--*--*--*--*-
+current data_sign: ace2005
+=*==*==*==*==*==*==*==*==*==*=
+loading train data ... ...
+50995
+start & end positions are out of bounaries !!!
+start & end positions are out of bounaries !!!
+start & end positions are out of bounaries !!!
+start & end positions are out of bounaries !!!
+start & end positions are out of bounaries !!!
+50995 train data loaded
+=*==*==*==*==*==*==*==*==*==*=
+loading dev data ... ...
+6776
+start & end positions are out of bounaries !!!
+start & end positions are out of bounaries !!!
+start & end positions are out of bounaries !!!
+start & end positions are out of bounaries !!!
+start & end positions are out of bounaries !!!
+start & end positions are out of bounaries !!!
+6776 dev data loaded
+=*==*==*==*==*==*==*==*==*==*=
+loading test data ... ...
+7406
+7406 test data loaded
+######################################################################
+EPOCH:  0
+/home/shannon/venv/lib/python3.6/site-packages/torch/nn/parallel/_functions.py:61: UserWarning: Was asked to gather along dimension 0, but all input tensors were scalars; will instead unsqueeze and return a vector.
+  warnings.warn('Was asked to gather along dimension 0, but all '
+-*--*--*--*--*--*--*--*--*--*--*--*--*--*--*-
+current training loss is : 
+0.005899012554436922
+............................................................
+DEV: loss, acc, precision, recall, f1
+0.0 0.9991 0.7328 0.2989 0.4246
+-*--*--*--*--*--*--*--*--*--*--*--*--*--*--*-
+-*--*--*--*--*--*--*--*--*--*--*--*--*--*--*-
+current training loss is : 
+6.582470086868852e-05
+............................................................
+DEV: loss, acc, precision, recall, f1
+0.0 0.999 0.668 0.5243 0.5875
+............................................................
+TEST: loss, acc, precision, recall, f1
+0.0 0.9992 0.6915 0.5262 0.5977
+-*--*--*--*--*--*--*--*--*--*--*--*--*--*--*-
+######################################################################
+EPOCH:  1
+current learning rate 3.8e-05
+current learning rate 3.8e-05
+-*--*--*--*--*--*--*--*--*--*--*--*--*--*--*-
+current training loss is : 
+0.001765311462804675
+............................................................
+DEV: loss, acc, precision, recall, f1
+0.0 0.9991 0.7422 0.3344 0.461
+-*--*--*--*--*--*--*--*--*--*--*--*--*--*--*-
+-*--*--*--*--*--*--*--*--*--*--*--*--*--*--*-
+current training loss is : 
+0.001160056795924902
+............................................................
+DEV: loss, acc, precision, recall, f1
+0.0 0.999 0.6661 0.6236 0.6442
+............................................................
+TEST: loss, acc, precision, recall, f1
+0.0 0.9992 0.6675 0.6382 0.6525
+-*--*--*--*--*--*--*--*--*--*--*--*--*--*--*-
+######################################################################
+EPOCH:  2
+current learning rate 3.61e-05
+current learning rate 3.61e-05
+-*--*--*--*--*--*--*--*--*--*--*--*--*--*--*-
+current training loss is : 
+0.006657166872173548
+............................................................
+DEV: loss, acc, precision, recall, f1
+0.0 0.8936 0.7292 0.8997 0.8056
+............................................................
+TEST: loss, acc, precision, recall, f1
+0.0 0.8642 0.7684 0.9056 0.8314
+-*--*--*--*--*--*--*--*--*--*--*--*--*--*--*-
+current training loss is : 
+0.00027577197761274874
+............................................................
+DEV: loss, acc, precision, recall, f1
+0.0 0.891 0.7444 0.8737 0.8039
+-*--*--*--*--*--*--*--*--*--*--*--*--*--*--*-
+######################################################################
+EPOCH:  3
+current learning rate 3.4295e-05
+current learning rate 3.4295e-05
+-*--*--*--*--*--*--*--*--*--*--*--*--*--*--*-
+current training loss is : 
+9.998805035138503e-05
+............................................................
+DEV: loss, acc, precision, recall, f1
+0.0 0.9975 0.8304 0.8763 0.8528
+............................................................
+TEST: loss, acc, precision, recall, f1
+0.0 0.9961 0.8441 0.8942 0.8684
+-*--*--*--*--*--*--*--*--*--*--*--*--*--*--*-
+-*--*--*--*--*--*--*--*--*--*--*--*--*--*--*-
+current training loss is : 
+0.0010440845508128405
+............................................................
+DEV: loss, acc, precision, recall, f1
+0.0 0.9937 0.8107 0.814 0.8124
+-*--*--*--*--*--*--*--*--*--*--*--*--*--*--*-
+######################################################################
+EPOCH:  4
+current learning rate 3.258025e-05
+current learning rate 3.258025e-05
+-*--*--*--*--*--*--*--*--*--*--*--*--*--*--*-
+current training loss is : 
+7.51480506138203e-05
+............................................................
+DEV: loss, acc, precision, recall, f1
+0.0 0.9953 0.7556 0.8613 0.805
+-*--*--*--*--*--*--*--*--*--*--*--*--*--*--*-
+-*--*--*--*--*--*--*--*--*--*--*--*--*--*--*-
+current training loss is : 
+0.0010397364385426044
+............................................................
+DEV: loss, acc, precision, recall, f1
+0.0 0.9975 0.8332 0.8388 0.836
+-*--*--*--*--*--*--*--*--*--*--*--*--*--*--*-
+=&==&==&==&==&==&==&==&==&==&==&==&==&==&==&=
+Best DEV : overall best loss, acc, precision, recall, f1 
+0.0 0.9975 0.8304 0.8763 0.8528
+scores on TEST when Best DEV:loss, acc, precision, recall, f1 
+0.0 0.9961 0.8441 0.8942 0.8684
+=&==&==&==&==&==&==&==&==&==&==&==&==&==&==&=
