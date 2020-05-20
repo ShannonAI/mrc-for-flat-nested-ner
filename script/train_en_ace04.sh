@@ -4,7 +4,6 @@
 # On Two 16G P100
 
 
-DATE=2020.05.14
 EXP_ID=22_1
 FOLDER_PATH=/PATH-TO-REPO/mrc-for-flat-nested-ner 
 CONFIG_PATH=${FOLDER_PATH}/config/en_bert_base_uncased.json
@@ -31,7 +30,7 @@ n_gpu=1
 data_sign=ace2004
 entity_sign=nested
 model_sign=mrc-ner
-output_path=${EXPORT_DIR}/${data_sign}/${model_sign}-${data_sign}-${DATE}-${EXP_ID}-${max_seq_length}-${learning_rate}-${train_batch_size}-${dropout}
+output_path=${EXPORT_DIR}/${data_sign}/${model_sign}-${data_sign}-${EXP_ID}-${max_seq_length}-${learning_rate}-${train_batch_size}-${dropout}
 
 
 mkdir -p ${output_path}

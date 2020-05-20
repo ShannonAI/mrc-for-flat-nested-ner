@@ -118,6 +118,7 @@ def convert_examples_to_features(examples, tokenizer, label_lst, max_seq_length,
             for end_item in example.end_position:
                 fake_end_pos[end_item] = 1
 
+            # improve answer span 
             for idx, (token, start_label, end_label) in enumerate(zip(whitespace_doc, fake_start_pos, fake_end_pos)):
                 tmp_subword_lst = tokenizer.tokenize(token)
 
@@ -159,7 +160,11 @@ def convert_examples_to_features(examples, tokenizer, label_lst, max_seq_length,
         if len(example.start_position) == 0 and len(example.end_position) == 0:
             doc_span_pos = np.zeros((max_seq_length, max_seq_length), dtype=int)
 
-
+        # input_mask: 
+        #   the mask has 1 for real tokens and 0 for padding tokens. 
+        #   only real tokens are attended to. 
+        # segment_ids:
+        #   segment token indices to indicate first and second portions of the inputs. 
         input_tokens = []
         segment_ids = []
         input_mask = []
@@ -168,34 +173,31 @@ def convert_examples_to_features(examples, tokenizer, label_lst, max_seq_length,
 
         input_tokens.append("[CLS]")
         segment_ids.append(0)
-        input_mask.append(0)
         start_pos.append(0) 
         end_pos.append(0)
 
         for query_item in query_tokens:
             input_tokens.append(query_item)
             segment_ids.append(0) 
-            input_mask.append(0) 
             start_pos.append(0)
             end_pos.append(0)
 
         input_tokens.append("[SEP]")
         segment_ids.append(0) 
-        input_mask.append(0) 
+        input_mask.append(1) 
         start_pos.append(0) 
         end_pos.append(0) 
 
         input_tokens.extend(all_doc_tokens) 
         segment_ids.extend([1]* len(all_doc_tokens))
-        input_mask.extend([1]* len(all_doc_tokens)) 
         start_pos.extend(doc_start_pos)
         end_pos.extend(doc_end_pos) 
 
         input_tokens.append("[SEP]")
         segment_ids.append(1)
-        input_mask.append(1)
         start_pos.append(0)
-        end_pos.append(0)
+        end_pos.append(0)        
+        input_mask = [1] * len(input_tokens)
        
 
         input_ids = tokenizer.convert_tokens_to_ids(input_tokens)
