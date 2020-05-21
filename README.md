@@ -52,9 +52,9 @@ Evaluations are conducted on the widely-used bechmarks: `CoNLL2003`, `OntoNotes 
 
 | Dataset |  Eng-OntoNotes5.0 | Zh-MSRA | Zh-OntoNotes4.0 | 
 |---|---|---|---|
-| Previous SOTA | 89.16 | 95.54  | 80.62 | 
+| Previous SOTA | 89.16 | 95.54  | 81.63 | 
 | Our method |  **91.11** | **95.75** | **82.11** | 
-|  |  **(+1.95)** | **(+0.21)** | **(+1.49)** | 
+|  |  **(+1.95)** | **(+0.21)** | **(+0.48)** | 
 
 
 ### Nested NER Datasets
