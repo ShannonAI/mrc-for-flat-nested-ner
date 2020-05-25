@@ -128,6 +128,13 @@ def bmes_decode(char_label_list: List[Tuple[str, str]]) -> Tuple[str, List[Tag]]
         if idx + 1 == length and current_label == "B":
             current_label = "S"
 
+        if idx == 0:
+            previous_label = ''
+        else:
+            previous_label = char_label_list[idx-1][1][0]
+        if previous_label in ['O', 'S', 'E'] and current_label == 'E':
+            current_label = 'S'
+
         # merge chars
         if current_label == "O":
             idx += 1
