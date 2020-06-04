@@ -1,0 +1,42 @@
+{
+  "default": {
+        "LAW": "law entities are named documents made into laws",
+        "EVENT": "event entities are named hurricanes, battles, wars, sports events",
+        "CARDINAL": "cardinal entities are numerals that do not fall under another type",
+        "FAC": "facility entities are buildings, airports, highways, bridges, etc",
+        "TIME": "time entities are times smaller than a day",
+        "DATE": "data entities are absolute or relative dates or periods",
+        "ORDINAL": "ordinal entities are first or second",
+        "ORG": "organization entities are companies, agencies, institutions",
+        "QUANTITY": "quantity entities are measurements, as of weight or distance",
+        "PERCENT": "percent entities are percentage including %",
+        "WORK_OF_ART": "work of art entities are titles of books, songs",
+        "LOC": "location entities are limited to not geographical locations, mountain ranges, bodies of water",
+        "LANGUAGE": "language entities are limited to any named language",
+        "NORP": "nationalities or religious or political groups",
+        "MONEY": "money entities are limited to monetary values, including unit",
+        "PERSON": "a person entity is limited to people, including fictional",
+        "GPE": "geographical political entities are countries, cities, state",
+        "PRODUCT": "product entities are limited to vehicles, weapons, foods, etc. not services"
+  },
+  "labels": [
+    "LAW",
+    "EVENT",
+    "CARDINAL",
+    "FAC",
+    "TIME",
+    "DATE",
+    "ORDINAL",
+    "ORG",
+    "QUANTITY",
+    "PERCENT",
+    "WORK_OF_ART",
+    "LOC",
+    "LANGUAGE",
+    "NORP",
+    "MONEY",
+    "PERSON",
+    "GPE",
+    "PRODUCT"
+  ]
+}
