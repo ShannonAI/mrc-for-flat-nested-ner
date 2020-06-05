@@ -3,7 +3,7 @@
     "ORG": "organization entities are limited to named corporate, governmental, or other organizational entities.",
     "PER": "person entities are named persons or family.",
     "LOC": "location entities are the name of politically or geographically defined locations such as cities, provinces, countries, international regions, bodies of water, mountains, etc.",
-    "MISC": "miscellaneous entities, e.g. events, nationalities, products or works of art."  
+    "MISC": "examples of miscellaneous entities include events, nationalities, products and works of art."  
 },
   "labels": [
     "ORG",
