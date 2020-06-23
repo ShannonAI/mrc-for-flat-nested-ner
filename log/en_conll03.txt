@@ -26,7 +26,7 @@ Please notice that merge the args_dict and json_config ... ...
   },
   "config_path": "/home/shannon/mrc-for-flat-nested-ner/config/en_bert_base_cased.json",
   "data_dir": "/home/shannon/dataset/en_conll03",
-  "bert_model": "/home/shannon/BERT_BASE_DIR/chinese_L-12_H-768_A-12",
+  "bert_model": "/home/shannon/BERT_BASE_DIR/cased_L-12_H-768_A-12",
   "task_name": null,
   "max_seq_length": 150,
   "train_batch_size": 32,
