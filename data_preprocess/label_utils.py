@@ -51,7 +51,7 @@ def get_span_labels(sentence_tags, inv_label_mapping=None):
         last = tag 
 
     if sentence_tags[-1] != "O":
-        span_labels.append((start, len(sentence_tags) -1 , sentence_tags[-1].split("-"[-1])))
+        span_labels.append((start, len(sentence_tags) -1 , sentence_tags[-1].split("-")[-1]))
 
     return span_labels 
 
