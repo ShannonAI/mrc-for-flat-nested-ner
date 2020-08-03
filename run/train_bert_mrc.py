@@ -23,7 +23,7 @@ from torch import nn
 from data_loader.model_config import Config 
 from data_loader.mrc_data_loader import MRCNERDataLoader
 from data_loader.mrc_data_processor import Conll03Processor, MSRAProcessor, Onto4ZhProcessor, Onto5EngProcessor, GeniaProcessor, ACE2004Processor, ACE2005Processor, ResumeZhProcessor
-from layer.optim import AdamW, lr_linear_decay
+from layer.optim import AdamW, lr_linear_decay, BertAdam
 from model.bert_mrc import BertQueryNER
 from data_loader.bert_tokenizer import BertTokenizer4Tagger 
 from metric.mrc_ner_evaluate  import flat_ner_performance, nested_ner_performance
@@ -126,13 +126,14 @@ def load_model(config, num_train_steps, label_list):
     # prepare optimzier 
     param_optimizer = list(model.named_parameters())
 
-        
-    no_decay = ["bias", "LayerNorm.bias", "LayerNorm.weight"]
+    no_decay = ["bias", "LayerNorm.bias", "LayerNorm.weight", 'gamma', 'beta']
     optimizer_grouped_parameters = [
     {"params": [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], "weight_decay": 0.01},
     {"params": [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], "weight_decay": 0.0}]
 
-    optimizer = AdamW(optimizer_grouped_parameters, lr=config.learning_rate, eps=10e-8)
+    # optimizer = AdamW(optimizer_grouped_parameters, lr=config.learning_rate, eps=10e-8)
+    optimizer = BertAdam(optimizer_grouped_parameters, lr=config.learning_rate, warmup=config.warmup_proportion,
+                        t_total=num_train_steps, max_grad_norm=config.clip_grad)
     sheduler = None
 
     return model, optimizer, sheduler, device, n_gpu
@@ -141,15 +142,12 @@ def load_model(config, num_train_steps, label_list):
 
 def train(model, optimizer, sheduler,  train_dataloader, dev_dataloader, test_dataloader, config, \
     device, n_gpu, label_list):
-    nb_tr_steps = 0 
-    tr_loss = 0 
 
     dev_best_acc = 0 
     dev_best_precision = 0 
     dev_best_recall = 0 
     dev_best_f1 = 0 
     dev_best_loss = 10000000000000
-
 
     test_acc_when_dev_best = 0 
     test_pre_when_dev_best = 0 
@@ -158,7 +156,6 @@ def train(model, optimizer, sheduler,  train_dataloader, dev_dataloader, test_da
     test_loss_when_dev_best = 1000000000000000
 
     model.train()
-
     for idx in range(int(config.num_train_epochs)):
         tr_loss = 0 
         nb_tr_examples, nb_tr_steps = 0, 0 
@@ -171,25 +168,21 @@ def train(model, optimizer, sheduler,  train_dataloader, dev_dataloader, test_da
             input_ids, input_mask, segment_ids, start_pos, end_pos, span_pos, ner_cate = batch 
             loss = model(input_ids, token_type_ids=segment_ids, attention_mask=input_mask, \
                 start_positions=start_pos, end_positions=end_pos, span_positions=span_pos)
-            if n_gpu > 1:
-                loss = loss.mean()
+            loss = loss.mean()
 
-            model.zero_grad()
             loss.backward()
-            nn.utils.clip_grad_norm_(parameters=model.parameters(), max_norm=config.clip_grad) 
             optimizer.step()
+            model.zero_grad()
 
             tr_loss += loss.item()
-
             nb_tr_examples += input_ids.size(0)
             nb_tr_steps += 1 
-
 
             if nb_tr_steps % config.checkpoint == 0:
                 print("-*-"*15)
                 print("current training loss is : ")
                 print(loss.item())
-                tmp_dev_loss, tmp_dev_acc, tmp_dev_prec, tmp_dev_rec, tmp_dev_f1 = eval_checkpoint(model, dev_dataloader, config, device, n_gpu, label_list, eval_sign="dev")
+                model, tmp_dev_loss, tmp_dev_acc, tmp_dev_prec, tmp_dev_rec, tmp_dev_f1 = eval_checkpoint(model, dev_dataloader, config, device, n_gpu, label_list, eval_sign="dev")
                 print("......"*10)
                 print("DEV: loss, acc, precision, recall, f1")
                 print(tmp_dev_loss, tmp_dev_acc, tmp_dev_prec, tmp_dev_rec, tmp_dev_f1)
@@ -209,20 +202,20 @@ def train(model, optimizer, sheduler,  train_dataloader, dev_dataloader, test_da
                         print("SAVED model path is :") 
                         print(output_model_file)
 
-                    tmp_test_loss, tmp_test_acc, tmp_test_prec, tmp_test_rec, tmp_test_f1 = eval_checkpoint(model, test_dataloader, config, device, n_gpu, label_list, eval_sign="test")
+                    model = model.cuda().to(device)
+                    model, tmp_test_loss, tmp_test_acc, tmp_test_prec, tmp_test_rec, tmp_test_f1 = eval_checkpoint(model, test_dataloader, config, device, n_gpu, label_list, eval_sign="test")
                     print("......"*10)
                     print("TEST: loss, acc, precision, recall, f1")
                     print(tmp_test_loss, tmp_test_acc, tmp_test_prec, tmp_test_rec, tmp_test_f1)
-
 
                     test_acc_when_dev_best = tmp_test_acc 
                     test_pre_when_dev_best = tmp_test_prec
                     test_rec_when_dev_best = tmp_test_rec
                     test_f1_when_dev_best = tmp_test_f1 
                     test_loss_when_dev_best = tmp_test_loss
+                    model = model.cuda().to(device)
 
                 print("-*-"*15)
-
 
     print("=&="*15)
     print("Best DEV : overall best loss, acc, precision, recall, f1 ")
@@ -232,13 +225,10 @@ def train(model, optimizer, sheduler,  train_dataloader, dev_dataloader, test_da
     print("=&="*15)
 
 
+def eval_checkpoint(model_object, eval_dataloader, config, device, n_gpu, label_list, eval_sign="dev"):
+    # input_dataloader type can only be one of dev_dataloader, test_dataloader
 
-def eval_checkpoint(model_object, eval_dataloader, config, \
-    device, n_gpu, label_list, eval_sign="dev"):
-    # input_dataloader type can only be one of dev_dataloader, test_dataloader 
-    model_object.eval()
-
-    eval_loss = 0 
+    eval_loss = 0
     start_pred_lst = []
     end_pred_lst = []
     span_pred_lst = []
@@ -246,8 +236,8 @@ def eval_checkpoint(model_object, eval_dataloader, config, \
     start_gold_lst = []
     span_gold_lst = []
     end_gold_lst = []
-    eval_steps = 0 
-    ner_cate_lst = [] 
+    eval_steps = 0
+    ner_cate_lst = []
 
     for input_ids, input_mask, segment_ids, start_pos, end_pos, span_pos, ner_cate in eval_dataloader:
         input_ids = input_ids.to(device)
@@ -255,9 +245,10 @@ def eval_checkpoint(model_object, eval_dataloader, config, \
         segment_ids = segment_ids.to(device)
         start_pos = start_pos.to(device)
         end_pos = end_pos.to(device)
-        span_pos = span_pos.to(device) 
+        span_pos = span_pos.to(device)
 
         with torch.no_grad():
+            model_object.eval()
             tmp_eval_loss = model_object(input_ids, segment_ids, input_mask, start_pos, end_pos, span_pos)
             start_logits, end_logits, span_logits = model_object(input_ids, segment_ids, input_mask)
 
@@ -295,10 +286,10 @@ def eval_checkpoint(model_object, eval_dataloader, config, \
     eval_f1 = round(eval_f1 , 4)
     eval_precision = round(eval_precision , 4)
     eval_recall = round(eval_recall , 4) 
-    eval_accuracy = round(eval_accuracy , 4) 
+    eval_accuracy = round(eval_accuracy , 4)
+    model_object.train()
 
-    return average_loss, eval_accuracy, eval_precision, eval_recall, eval_f1 
-
+    return model_object, average_loss, eval_accuracy, eval_precision, eval_recall, eval_f1
 
 
 def merge_config(args_config):
@@ -307,7 +298,6 @@ def merge_config(args_config):
     model_config.update_args(args_config)
     model_config.print_config()
     return model_config
-
 
 
 def main():

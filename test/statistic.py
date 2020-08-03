@@ -53,6 +53,8 @@ def statistic_entity_for_sequence_labeling(input_file_path, ner_type="flat"):
     for entity_k, entity_v in entity_statistic_dict.items():
         print("{} -> {}".format(entity_k, entity_v))
 
+    return entity_statistic_dict
+
 
 
 def statistic_entity_for_mrc_ner(input_file_path, ner_type="flat"):
@@ -81,6 +83,8 @@ def statistic_entity_for_mrc_ner(input_file_path, ner_type="flat"):
     for entity_k, entity_v in entity_statistic_dict.items():
         print("{} -> {}".format(entity_k, entity_v))
 
+    return entity_statistic_dict
+
 
 def run_stat_for_tagger_input(data_dir):
     print("*** *** *** *** "*15)
@@ -88,6 +92,7 @@ def run_stat_for_tagger_input(data_dir):
     print("*** *** *** *** "*15)
     # data_dir = "/data/nfsdata/nlp/datasets/sequence_labeling/CN_NER/OntoNote4NER"
     ner_type = "flat"  # choices are ["flat", "nest"]
+    entity_statistic_dict_summary = dict()
     for data_type in ["train", "dev", "test"]:
         if ner_type == "flat":
             input_file_path = os.path.join(data_dir, data_type + ".char.bmes")
@@ -95,7 +100,10 @@ def run_stat_for_tagger_input(data_dir):
             input_file_path = os.path.join(data_dir, )
         print("=*=" * 20)
         print("*** *** {} *** ***".format(data_type))
-        statistic_entity_for_sequence_labeling(input_file_path, ner_type="flat")
+        tmp_entity_statistic_dict = statistic_entity_for_sequence_labeling(input_file_path, ner_type="flat")
+        entity_statistic_dict_summary[data_type] = tmp_entity_statistic_dict
+
+    return entity_statistic_dict_summary
 
 
 def run_stat_for_mrc_input(data_dir):
@@ -104,16 +112,20 @@ def run_stat_for_mrc_input(data_dir):
     print("*** *** *** *** "*15)
     # data_dir = "/data/xiaoya/nfs2data_xiaoya/dataset/mrc-ner/zh_ontonotes4"
     ner_type = "flat"  # choices are ["flat", "nest"]
+    entity_statistic_dict_summary = dict()
     for data_type in ["train", "dev", "test"]:
         input_file_path = os.path.join(data_dir, "mrc-ner.{}".format(data_type))
         print("=*=" * 20)
         print("*** *** {} *** ***".format(data_type))
-        statistic_entity_for_mrc_ner(input_file_path, ner_type="flat")
+        tmp_entity_statistic_dict = statistic_entity_for_mrc_ner(input_file_path, ner_type="flat")
+        entity_statistic_dict_summary[data_type] = tmp_entity_statistic_dict
+
+    return entity_statistic_dict_summary
 
 
 if __name__ == "__main__":
     tagger_data_dir = "/data/nfsdata/nlp/datasets/sequence_labeling/CN_NER/OntoNote4NER"
     mrc_data_dir ="/data/xiaoya/work/datasets/mrc_ner/zh_onto4"
-    run_stat_for_tagger_input(tagger_data_dir)
-    run_stat_for_mrc_input(mrc_data_dir)
+    tagger_statistic_summary = run_stat_for_tagger_input(tagger_data_dir)
+    mrc_statistic_summary = run_stat_for_mrc_input(mrc_data_dir)
     # the number of entity should be the same for mrc-ner and sequence-tagger
