@@ -113,7 +113,7 @@ def run_stat_for_mrc_input(data_dir):
 
 if __name__ == "__main__":
     tagger_data_dir = "/data/nfsdata/nlp/datasets/sequence_labeling/CN_NER/OntoNote4NER"
-    mrc_data_dir ="/data/xiaoya/nfs2data_xiaoya/dataset/mrc-ner/zh_ontonotes4"
+    mrc_data_dir ="/data/xiaoya/work/datasets/mrc_ner/zh_onto4"
     run_stat_for_tagger_input(tagger_data_dir)
     run_stat_for_mrc_input(mrc_data_dir)
     # the number of entity should be the same for mrc-ner and sequence-tagger
