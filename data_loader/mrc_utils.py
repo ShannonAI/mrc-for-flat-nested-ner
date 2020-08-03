@@ -142,8 +142,7 @@ def convert_examples_to_features(examples, tokenizer, label_lst, max_seq_length,
 
             for span_item in example.span_position:
                 s_idx, e_idx = span_item.split(";")
-                if len(query_tokens)+2+offset_idx_dict[int(s_idx)] <= max_tokens_for_doc and \
-                len(query_tokens)+2+offset_idx_dict[int(e_idx)] <= max_tokens_for_doc :
+                if offset_idx_dict[int(s_idx)] <= max_tokens_for_doc and offset_idx_dict[int(e_idx)] <= max_tokens_for_doc :
                     doc_span_pos[len(query_tokens)+2+offset_idx_dict[int(s_idx)]][len(query_tokens)+2+offset_idx_dict[int(e_idx)]] = 1
                 else:
                     continue
