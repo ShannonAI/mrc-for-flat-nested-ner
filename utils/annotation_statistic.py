@@ -134,12 +134,6 @@ def main(tagger_data_dir, mrc_data_dir):
 
 
 if __name__ == "__main__":
-    #######################################################################################
-    # zh_msra: "/data/xiaoya/nfs2data_xiaoya/data_repo/data-mrc_ner/flat/msra_zh"
-    # zh_ontonotes: "/data/nfsdata/nlp/datasets/sequence_labeling/CN_NER/OntoNote4NER"
-    #######################################################################################
-    # zh_msra: "/data/xiaoya/work/datasets/mrc_ner/zh_msra"
-    # zh_ontonotes: "/data/xiaoya/work/datasets/mrc_ner/zh_onto4"
     tagger_data_dir = sys.argv[1]
     mrc_data_dir = sys.argv[2]
     main(tagger_data_dir, mrc_data_dir)
