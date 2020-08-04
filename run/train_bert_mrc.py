@@ -60,7 +60,7 @@ def args_parser():
     parser.add_argument("--n_gpu", type=int, default=1)
     parser.add_argument("--dropout", type=float, default=0.2)
     parser.add_argument("--entity_threshold", type=float, default=0.5)
-    parser.add_argument("--data_cache", type=bool, default=False)
+    parser.add_argument("--data_cache", default=True, action='store_false')
     parser.add_argument("--do_lower_case", default=False, action='store_true', help="lower case of input tokens.")
 
     args = parser.parse_args()

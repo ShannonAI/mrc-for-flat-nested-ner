@@ -40,7 +40,6 @@ export PYTHONPATH=${FOLDER_PATH}
 CUDA_VISIBLE_DEVICES=2 python3 ${FOLDER_PATH}/run/train_bert_mrc.py \
 --data_dir ${DATA_PATH} \
 --n_gpu ${n_gpu} \
---data_cache ${data_cache} \
 --entity_sign flat \
 --data_sign ${data_sign} \
 --bert_model ${BERT_PATH} \

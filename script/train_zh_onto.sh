@@ -44,7 +44,6 @@ CUDA_VISIBLE_DEVICES=2 python3 ${FOLDER_PATH}/run/train_bert_mrc.py \
 --data_sign ${data_sign} \
 --bert_model ${BERT_PATH} \
 --config_path ${CONFIG_PATH} \
---data_cache ${data_cache} \
 --export_model ${export_model} \
 --output_dir ${output_path} \
 --dropout ${dropout} \

@@ -38,7 +38,9 @@ def collect_arguments():
 def run_analysis_for_input_length(arg_configs):
     tokenizer = BertTokenizer4Tagger.from_pretrained(arg_configs.bert_model, do_lower_case=arg_configs.do_lower_case)
     print("%=%"*15)
-    print(arg_configs.data_dir)
+    print("data_dir", "--->", arg_configs.data_dir)
+    print("bert_model", "--->", arg_configs.bert_model)
+    print("clip_length", "--->", arg_configs.clip_length)
 
     for data_type in ["train", "dev", "test"]:
         print("==="*15)
