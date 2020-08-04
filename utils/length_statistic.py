@@ -26,6 +26,7 @@ def collect_arguments():
     # required
     parser.add_argument("--data_dir", required=True, default="/data/mrc-ner/zh_onto", type=str, help="")
     parser.add_argument("--bert_model", required=True, default="/data/pretrained_ckpt/chinese_L-12_H-768_A-12", type=str, help="")
+    parser.add_argument("--clip_length", required=True, default=200, type=int)
 
     # optional
     parser.add_argument("--do_lower_case", default=False, action='store_true', help="lower case of input tokens.")
@@ -41,7 +42,7 @@ def run_analysis_for_input_length(arg_configs):
 
     for data_type in ["train", "dev", "test"]:
         print("==="*15)
-        print("*** *** *** " * 5 , data_type)
+        print("*** *** *** " * 5 , data_type, "*** *** *** " * 5)
 
         input_file_path = os.path.join(arg_configs.data_dir, "mrc-ner.{}".format(data_type))
         with open(input_file_path, "r") as f:
@@ -49,19 +50,20 @@ def run_analysis_for_input_length(arg_configs):
             # data_instances is a list of dict:
             # the keys of one element in data_instances are:
             # query, context,
-            summary_of_input_data = tokenize_input_sequence_to_subtokens(data_instances, tokenizer)
+            summary_of_input_data = tokenize_input_sequence_to_subtokens(data_instances, tokenizer, arg_configs.clip_length)
             for s_k, s_v in summary_of_input_data.items():
                 print(s_k, "---> ", s_v)
 
 
-def tokenize_input_sequence_to_subtokens(examples, tokenizer):
+def tokenize_input_sequence_to_subtokens(examples, tokenizer, clip_length):
     len_of_queries = []
     len_of_contexts = []
     len_of_inputs = []
 
     summary_of_inputs = OrderedDict()
+    oob_counter = 0
 
-    for example_item in examples:
+    for example_idx, example_item in enumerate(examples):
         context_subtokens_lst = []
         query_item = example_item["query"]
         context_item = example_item["context"]
@@ -73,6 +75,8 @@ def tokenize_input_sequence_to_subtokens(examples, tokenizer):
         len_of_queries.append(len(query_subtokens))
         len_of_contexts.append(len(context_subtokens_lst))
         len_of_inputs.append(len(query_subtokens)+len(context_subtokens_lst)+3)
+        if len(context_subtokens_lst) >= clip_length:
+            oob_counter += 1
 
     summary_of_inputs["max_query"] = max(len_of_queries)
     summary_of_inputs["max_context"] = max(len_of_contexts)
@@ -87,6 +91,7 @@ def tokenize_input_sequence_to_subtokens(examples, tokenizer):
     summary_of_inputs["avg_inputs"] = sum(len_of_inputs) / len(len_of_inputs)
 
     summary_of_inputs["num_examples"] = len(len_of_queries)
+    summary_of_inputs["oob_examples"] = oob_counter
 
     return summary_of_inputs
 
