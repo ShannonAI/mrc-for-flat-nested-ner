@@ -16,7 +16,7 @@ If you find this repo helpful, please cite the following:
 For any question, please feel free to contact xiaoya_li@shannonai.com or post Github issues.<br>
 
 
-## Contents 
+## Content
 1. [Overview](#overview)
 2. [Experimental Results on Flat/Nested NER Datasets](#experimental-results-on-flat-nested-ner-datasets)
 3. [Dependencies](#dependencies)

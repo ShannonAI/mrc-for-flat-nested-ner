@@ -234,7 +234,6 @@ def convert_examples_to_features(examples, tokenizer, label_lst, max_seq_length,
     return features 
 
 
-
 def read_mrc_ner_examples(input_file, is_training=True, with_negative=True):
     """
     Desc:

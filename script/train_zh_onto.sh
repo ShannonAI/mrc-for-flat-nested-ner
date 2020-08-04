@@ -1,66 +1,62 @@
 #!/usr/bin/env bash 
 # -*- coding: utf-8 -*- 
 # Author: Xiaoy Li 
-# On One 12G TITAN XP
-
-EXP-ID=22_1
-FOLDER_PATH=/data/xiaoya/work/mrc-for-flat-nested-ner
-DATA_PATH=/data/xiaoya/work/datasets/mrc_ner/zh_onto4
-BERT_PATH=/data/nfsdata/nlp/BERT_BASE_DIR/chinese_L-12_H-768_A-12
-EXPORT_DIR=/data/xiaoya/output_mrc_ner
-CONFIG_PATH=${FOLDER_PATH}/config/zh_bert.json
+# On One 22G TITAN XP
 
 
-max_seq_length=50
-learning_rate=8e-6
-start_loss_ratio=1.0
-end_loss_ratio=1.0
-span_loss_ratio=1.0
-dropout=0.2
-train_batch_size=12
-dev_batch_size=32
-test_batch_size=32
-max_train_expoch=6
-warmup_proportion=-1
-gradient_accumulation_step=1
-checkpoint=600
-n_gpu=1
-seed=2333
-data_sign=zh_onto 
-export_model=True
-model_sign=mrc-ner
-data_cache=True
-output_path=${EXPORT_DIR}/${data_sign}/${model_sign}-${data_sign}-${EXP_ID}-${max_seq_length}-${learning_rate}-${train_batch_size}-${dropout}
+REPO_PATH=/home/lixiaoya/mrc-for-flat-nested-ner
+export PYTHONPATH="$PYTHONPATH:$REPO_PATH"
 
 
-mkdir -p ${output_path}
-export PYTHONPATH=${FOLDER_PATH}
+# model params
+MAX_LEN=256
+LR=7e-6
+START_LRATIO=1.0
+END_LRATIO=1.0
+SPAN_LRATIO=1.0
+DP=0.2
+TRAIN_BZ=12
+DEV_BZ=16
+TEST_BZ=16
+NUM_EPOCH=6
+WARMUP_PRO=-1
+GradACC=1
+CHECKPOINT=600
+N_GPU=1
+SEED=2333
+DATA_SIGN=zh_onto
+MODEL_SIGN=mrc-ner
+ENTITY_SIGN=flat
+
+# path to pretrained models and data files
+BASE_DATA_DIR=/data
+DATA_PATH=${BASE_DATA_DIR}/mrc_ner/zh_onto4
+BERT_PATH=${BASE_DATA_DIR}/pretrain_ckpt/chinese_L-12_H-768_A-12
+CONFIG_PATH=${REPO_PATH}/config/zh_bert.json
+OUTPUT_PATH=${BASE_DATA_DIR}/output_mrc_ner/${DATA_SIGN}_${MAX_LEN}_${LR}_${TRAIN_BZ}_${DP}
+
+mkdir -p ${OUTPUT_PATH}
 
 
-CUDA_VISIBLE_DEVICES=2 python3 ${FOLDER_PATH}/run/train_bert_mrc.py \
---data_dir ${DATA_PATH} \
---n_gpu ${n_gpu} \
---entity_sign flat \
---data_sign ${data_sign} \
---bert_model ${BERT_PATH} \
---config_path ${CONFIG_PATH} \
---export_model ${export_model} \
---output_dir ${output_path} \
---dropout ${dropout} \
---checkpoint ${checkpoint} \
---max_seq_length ${max_seq_length} \
---train_batch_size ${train_batch_size} \
---dev_batch_size ${dev_batch_size} \
---test_batch_size ${test_batch_size} \
---learning_rate ${learning_rate} \
---weight_start ${start_loss_ratio} \
---weight_end ${end_loss_ratio} \
---weight_span ${span_loss_ratio} \
---num_train_epochs ${max_train_expoch} \
---seed ${seed} \
---warmup_proportion ${warmup_proportion} \
---gradient_accumulation_steps ${gradient_accumulation_step}
-
-
-
-
+CUDA_VISIBLE_DEVICES=1 python3 $REPO_PATH/run/train_bert_mrc.py \
+--data_dir $DATA_PATH \
+--n_gpu $N_GPU \
+--entity_sign $ENTITY_SIGN \
+--data_sign $DATA_SIGN \
+--bert_model $BERT_PATH \
+--config_path $CONFIG_PATH \
+--output_dir $OUTPUT_PATH \
+--dropout $DP \
+--checkpoint $CHECKPOINT \
+--max_seq_length $MAX_LEN \
+--train_batch_size $TRAIN_BZ \
+--dev_batch_size $DEV_BZ \
+--test_batch_size $TEST_BZ \
+--learning_rate $LR \
+--weight_start $START_LRATIO \
+--weight_end $END_LRATIO \
+--weight_span $SPAN_LRATIO \
+--num_train_epochs $NUM_EPOCH \
+--seed $SEED \
+--warmup_proportion $WARMUP_PRO \
+--gradient_accumulation_steps $GradACC

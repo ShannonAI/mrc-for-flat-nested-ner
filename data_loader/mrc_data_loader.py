@@ -7,9 +7,11 @@
 # description:
 # 
 
-import os 
+import os
+import math
 import torch
-from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler  
+from pathos.multiprocessing import ProcessingPool as Pool
+from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
 from data_loader.mrc_utils import convert_examples_to_features
 
 
@@ -17,11 +19,11 @@ from data_loader.mrc_utils import convert_examples_to_features
 class MRCNERDataLoader(object):
     def __init__(self, config, data_processor, label_list, tokenizer, mode="train", allow_impossible=True):
 
-        self.data_dir = config.data_dir 
-        self.max_seq_length= config.max_seq_length 
+        self.data_dir = config.data_dir
+        self.max_seq_length= config.max_seq_length
 
         if mode == "train":
-            self.train_batch_size = config.train_batch_size 
+            self.train_batch_size = config.train_batch_size
             self.dev_batch_size = config.dev_batch_size 
             self.test_batch_size = config.test_batch_size 
             self.num_train_epochs = config.num_train_epochs 
@@ -47,7 +49,7 @@ class MRCNERDataLoader(object):
         self.num_dev_instances = 0 
         self.num_test_instances = 0
 
-    def convert_examples_to_features(self, data_sign="train",):
+    def convert_examples_to_features(self, data_sign="train", num_data_processor=1):
 
         print("=*="*10)
         print("loading {} data ... ...".format(data_sign))
@@ -64,15 +66,47 @@ class MRCNERDataLoader(object):
         else:
             raise ValueError("please notice that the data_sign can only be train/dev/test !!")
 
-        cache_path = os.path.join(self.data_dir, "mrc-ner.{}.cache.{}".format(data_sign, str(self.max_seq_len)))
-        if os.path.exists(cache_path) and self.data_cache:
-            features = torch.load(cache_path)
-        else:
-            features = convert_examples_to_features(examples, self.tokenizer, self.label_list, self.max_seq_length, allow_impossible=self.allow_impossible)
-            if self.data_cache:
-                torch.save(features, cache_path)
-        return features
+        # TODO (xiaoya): enable multi-threads processing and loading datasets.
+        def export_features_to_cache_file(idx, sliced_features):
+            cache_path = os.path.join(self.data_dir, "mrc-ner.{}.cache.{}.{}".format(data_sign, str(self.max_seq_len), str(idx)))
+            print(">>> export sliced features to : {}".format(cache_path))
+            torch.save(sliced_features, cache_path)
 
+        def read_features_from_cache_file(idx):
+            cache_path = os.path.join(self.data_dir,
+                                      "mrc-ner.{}.cache.{}.{}".format(data_sign, str(self.max_seq_len), str(idx)))
+            print("<<< load sliced features from : {}".format(cache_path))
+            sliced_features = torch.load(cache_path)
+            return sliced_features
+
+        multi_process_for_data = Pool(num_data_processor)
+        features_lst = []
+        total_examples = len(examples)
+        size_of_one_process = math.ceil(total_examples / num_data_processor)
+
+        for idx in range(num_data_processor):
+            start = size_of_one_process * idx
+            end = (idx+1) * size_of_one_process if (idx+1)* size_of_one_process < total_examples else total_examples
+            sliced_examples = examples[start:end]
+            sliced_features = convert_examples_to_features(sliced_examples, self.tokenizer, self.label_list, self.max_seq_length, allow_impossible=self.allow_impossible)
+            export_features_to_cache_file(idx, sliced_features)
+
+        del examples, total_examples
+        for idx in range(num_data_processor):
+            features_lst.append(multi_process_for_data.apply_async(read_features_from_cache_file, args=(idx, )))
+
+        multi_process_for_data.close()
+        multi_process_for_data.join()
+        features = [feature_slice.get() for feature_slice in features_lst]
+
+        # cache_path = os.path.join(self.data_dir, "mrc-ner.{}.cache.{}".format(data_sign, str(self.max_seq_len)))
+        # if os.path.exists(cache_path) and self.data_cache:
+        #     features = torch.load(cache_path)
+        # else:
+        #     features = convert_examples_to_features(examples, self.tokenizer, self.label_list, self.max_seq_length, allow_impossible=self.allow_impossible)
+        #     if self.data_cache:
+        #         torch.save(features, cache_path)
+        return features
 
     def get_dataloader(self, data_sign="train"):
         

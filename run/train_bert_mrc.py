@@ -50,7 +50,6 @@ def args_parser():
     parser.add_argument("--local_rank", type=int, default=-1)
     parser.add_argument("--gradient_accumulation_steps", type=int, default=1)
     parser.add_argument("--seed", type=int, default=3006)
-    parser.add_argument("--export_model", type=bool, default=False)
     parser.add_argument("--output_dir", type=str, default="/home/lixiaoya/output")
     parser.add_argument("--data_sign", type=str, default="msra_ner")
     parser.add_argument("--weight_start", type=float, default=1.0) 
@@ -61,6 +60,7 @@ def args_parser():
     parser.add_argument("--dropout", type=float, default=0.2)
     parser.add_argument("--entity_threshold", type=float, default=0.5)
     parser.add_argument("--data_cache", default=True, action='store_false')
+    parser.add_argument("--export_model", default=True, action='store_false')
     parser.add_argument("--do_lower_case", default=False, action='store_true', help="lower case of input tokens.")
 
     args = parser.parse_args()

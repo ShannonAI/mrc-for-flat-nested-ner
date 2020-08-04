@@ -22,6 +22,8 @@ def collect_arguments():
     parser.add_argument("--data_sign", required=True, type=str, default="zh_onto", help="[data_sign] corespond the a specific dataset.")
     parser.add_argument("--bert_model", required=True, default="/data/pretrained_ckpt/chinese_L-12_H-768_A-12", type=str, help="")
 
+    # optional
+    parser.add_argument("--num_data_processor", default=1, type=int, help="number of data processor.")
     parser.add_argument("--data_cache", default=True, action='store_false', help=".")
     parser.add_argument("--do_lower_case", default=False, action='store_true', help="lower case of input tokens.")
     parser.add_argument("--allow_impossible", default=True, action='store_false', help="Whether to allow impossible input examples as input.")
@@ -58,9 +60,9 @@ def main():
 
     dataset_loaders = MRCNERDataLoader(arg_configs, data_processor, label_list, tokenizer, mode="transform_binary_files", allow_impossible=arg_configs.allow_impossible)
 
-    train_features = dataset_loaders.convert_examples_to_features(data_sign="train")
-    dev_features = dataset_loaders.convert_examples_to_features(data_sign="dev")
-    test_features = dataset_loaders.convert_examples_to_features(data_sign="test")
+    train_features = dataset_loaders.convert_examples_to_features(data_sign="train", num_data_processor=arg_configs.num_data_processor)
+    dev_features = dataset_loaders.convert_examples_to_features(data_sign="dev", num_data_processor=arg_configs.num_data_processor)
+    test_features = dataset_loaders.convert_examples_to_features(data_sign="test", num_data_processor=arg_configs.num_data_processor)
 
 
 
