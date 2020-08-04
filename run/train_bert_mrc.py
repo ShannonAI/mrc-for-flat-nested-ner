@@ -61,6 +61,7 @@ def args_parser():
     parser.add_argument("--dropout", type=float, default=0.2)
     parser.add_argument("--entity_threshold", type=float, default=0.5)
     parser.add_argument("--data_cache", type=bool, default=False)
+    parser.add_argument("--do_lower_case", default=False, action='store_true', help="lower case of input tokens.")
 
     args = parser.parse_args()
 
@@ -102,7 +103,7 @@ def load_data(config):
 
 
     label_list = data_processor.get_labels()
-    tokenizer = BertTokenizer4Tagger.from_pretrained(config.bert_model, do_lower_case=True)
+    tokenizer = BertTokenizer4Tagger.from_pretrained(config.bert_model, do_lower_case=config.do_lower_case)
 
     dataset_loaders = MRCNERDataLoader(config, data_processor, label_list, tokenizer, mode="train", allow_impossible=True)
     train_dataloader = dataset_loaders.get_dataloader(data_sign="train") 

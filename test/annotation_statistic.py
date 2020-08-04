@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 
-
 # author: xiaoy li
 # statistic for entity
 
@@ -10,6 +9,7 @@
 import os
 import sys
 import json
+import sys
 
 root_path = "/".join(os.path.realpath(__file__).split("/")[:-2])
 print(root_path)
@@ -123,9 +123,26 @@ def run_stat_for_mrc_input(data_dir):
     return entity_statistic_dict_summary
 
 
-if __name__ == "__main__":
-    tagger_data_dir = "/data/nfsdata/nlp/datasets/sequence_labeling/CN_NER/OntoNote4NER"
-    mrc_data_dir ="/data/xiaoya/work/datasets/mrc_ner/zh_onto4"
+
+def main(tagger_data_dir, mrc_data_dir):
     tagger_statistic_summary = run_stat_for_tagger_input(tagger_data_dir)
     mrc_statistic_summary = run_stat_for_mrc_input(mrc_data_dir)
     # the number of entity should be the same for mrc-ner and sequence-tagger
+    entity_type = [tmp_k for tmp_k in mrc_statistic_summary.keys()]
+    for entity_item in entity_type:
+        assert tagger_statistic_summary[entity_item] == mrc_statistic_summary[entity_item]
+
+
+
+if __name__ == "__main__":
+    #######################################################################################
+    # zh_msra: "/data/xiaoya/nfs2data_xiaoya/data_repo/data-mrc_ner/flat/msra_zh"
+    # zh_ontonotes: "/data/nfsdata/nlp/datasets/sequence_labeling/CN_NER/OntoNote4NER"
+    #######################################################################################
+    # zh_msra: "/data/xiaoya/work/datasets/mrc_ner/zh_msra"
+    # zh_ontonotes: "/data/xiaoya/work/datasets/mrc_ner/zh_onto4"
+    tagger_data_dir = sys.argv[1]
+    mrc_data_dir = sys.argv[2]
+    main(tagger_data_dir, mrc_data_dir)
+    # python3 annotation_statistic.py <path_to_tagger_data_dir> <path_to_mrc_data_dir>
+

@@ -26,7 +26,15 @@ class MRCNERDataLoader(object):
             self.test_batch_size = config.test_batch_size 
             self.num_train_epochs = config.num_train_epochs 
         elif mode == "test":
-            self.test_batch_size = config.test_batch_size 
+            self.test_batch_size = config.test_batch_size
+        elif mode == "transform_binary_files":
+            print("=*="*15)
+            print("Transform pre-processed MRC-NER datasets into binary files. ")
+            print("max_sequence_length is : ", config.max_seq_length)
+            print("data_dir is : ", config.data_dir)
+            print("=*="*15)
+        else:
+            raise ValueError("[mode] for MRCNERDataLoader does not exist.")
 
         self.data_processor = data_processor 
         self.label_list = label_list 

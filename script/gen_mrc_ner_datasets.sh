@@ -11,11 +11,13 @@ REPO_PATH=/data/xiaoya/work/mrc-for-flat-nested-ner
 export PYTHONPATH="$PYTHONPATH:$REPO_PATH"
 
 # data files
-DATASET_SIGN=zh_ontonotes4 # en_ace2004, en_ace2005, en_conll03, en_ontonotes5, en_genia, zh_ontonotes4, zh_msra
+DATASET_SIGN=zh_msra # en_ace2004, en_ace2005, en_conll03, en_ontonotes5, en_genia, zh_ontonotes4, zh_msra
 ENTITY_SIGN=flat # flat, nested
 QUERY_SIGN=default
-SOURCE_DATA_DIR=/data/nfsdata/nlp/datasets/sequence_labeling/CN_NER/OntoNote4NER
-TARGET_DATA_DIR=/data/xiaoya/work/datasets/mrc_ner/zh_onto4
+SOURCE_DATA_DIR=/data/xiaoya/nfs2data_xiaoya/data_repo/data-mrc_ner/flat/msra_zh
+# zh_ontonotes4: /data/nfsdata/nlp/datasets/sequence_labeling/CN_NER/OntoNote4NER
+TARGET_DATA_DIR=/data/xiaoya/work/datasets/mrc_ner/zh_msra
+# zh_ontonotes4: /data/xiaoya/work/datasets/mrc_ner/zh_onto4
 
 mkdir -p $TARGET_DATA_DIR
 

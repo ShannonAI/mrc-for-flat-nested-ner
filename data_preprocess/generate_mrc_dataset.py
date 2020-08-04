@@ -146,7 +146,7 @@ def transform_examples_to_qa_features(query_map, entity_labels, data_instances, 
     return mrc_ner_dataset
 
 
-def prepare_arguments():
+def collect_arguments():
     parser = argparse.ArgumentParser(description="Arguments for generating MRC-NER datasets")
 
     # required argumetns
@@ -161,7 +161,7 @@ def prepare_arguments():
 
 
 def main():
-    argument_configs = prepare_arguments()
+    argument_configs = collect_arguments()
 
     generate_query_ner_dataset(argument_configs.path_to_source_data_file,
                                argument_configs.path_to_save_mrc_data_file,
