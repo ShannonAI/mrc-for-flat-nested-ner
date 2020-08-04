@@ -33,7 +33,7 @@ do
 
   TARGET_OUTPUT_FILE=$TARGET_DATA_DIR/mrc-ner.${DATA_TYPE}
 
-  python3 $REPO_PATH/data_preprocess/generate_mrc_dataset.py \
+  python3 $REPO_PATH/run/generate_mrc_datasets_from_seq_labeling.py \
   --path_to_source_data_file $SOURCE_INPUT_FILE \
   --path_to_save_mrc_data_file $TARGET_OUTPUT_FILE \
   --dataset_name $DATASET_SIGN \

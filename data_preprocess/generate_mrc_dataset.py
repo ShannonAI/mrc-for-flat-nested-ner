@@ -16,8 +16,6 @@
 
 
 import json
-import argparse
-
 
 from data_preprocess.file_utils import load_conll 
 from data_preprocess.label_utils import get_span_labels 
@@ -146,31 +144,8 @@ def transform_examples_to_qa_features(query_map, entity_labels, data_instances, 
     return mrc_ner_dataset
 
 
-def collect_arguments():
-    parser = argparse.ArgumentParser(description="Arguments for generating MRC-NER datasets")
-
-    # required argumetns
-    parser.add_argument("--path_to_source_data_file", required=True, type=str, help="data dirs, seperate with ';'")
-    parser.add_argument("--path_to_save_mrc_data_file", required=True, type=str, help="data dirs, seperate with ';'")
-    parser.add_argument("--dataset_name", required=True, type=str, help="data dirs, seperate with ';'")
-    parser.add_argument("--entity_sign", type=str, default="flat", help="type of entities, [flat/nested]")
-    parser.add_argument("--query_sign", type=str, default="default", help="")
-    args = parser.parse_args()
-
-    return args
 
 
-def main():
-    argument_configs = collect_arguments()
 
-    generate_query_ner_dataset(argument_configs.path_to_source_data_file,
-                               argument_configs.path_to_save_mrc_data_file,
-                               entity_sign=argument_configs.entity_sign,
-                               dataset_name=argument_configs.dataset_name,
-                               query_sign=argument_configs.query_sign)
-
-
-if __name__ == "__main__":
-    main()
 
 
