@@ -7,10 +7,7 @@
 # binary train/dev/test sets for mrc-ner model.
 
 
-import os
-import sys
 import argparse
-from data_loader.model_config import Config
 from data_loader.mrc_data_loader import MRCNERDataLoader
 from data_loader.bert_tokenizer import BertTokenizer4Tagger
 from data_loader.mrc_data_processor import Conll03Processor, MSRAProcessor, Onto4ZhProcessor, Onto5EngProcessor, GeniaProcessor, ACE2004Processor, ACE2005Processor, ResumeZhProcessor
