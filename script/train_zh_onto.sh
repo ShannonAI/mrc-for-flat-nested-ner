@@ -11,7 +11,7 @@ EXPORT_DIR=/data/xiaoya/output_mrc_ner
 CONFIG_PATH=${FOLDER_PATH}/config/zh_bert.json
 
 
-max_seq_length=100
+max_seq_length=50
 learning_rate=8e-6
 start_loss_ratio=1.0
 end_loss_ratio=1.0

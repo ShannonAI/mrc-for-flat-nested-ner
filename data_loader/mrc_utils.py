@@ -198,7 +198,6 @@ def convert_examples_to_features(examples, tokenizer, label_lst, max_seq_length,
         start_pos.append(0)
         end_pos.append(0)        
         input_mask = [1] * len(input_tokens)
-       
 
         input_ids = tokenizer.convert_tokens_to_ids(input_tokens)
 
@@ -209,7 +208,14 @@ def convert_examples_to_features(examples, tokenizer, label_lst, max_seq_length,
             input_mask += padding 
             segment_ids += padding 
             start_pos += padding 
-            end_pos += padding 
+            end_pos += padding
+
+        input_ids = np.array(input_ids, dtype=np.int32)
+        input_mask = np.array(input_mask, dtype=np.int32)
+        segment_ids = np.array(segment_ids, dtype=np.int32)
+        start_pos = np.array(start_pos, dtype=np.int32)
+        end_pos = np.array(end_pos, dtype=np.int32)
+        doc_span_pos = np.array(doc_span_pos, dtype=np.int32)
 
         features.append(
             InputFeatures(
@@ -220,7 +226,7 @@ def convert_examples_to_features(examples, tokenizer, label_lst, max_seq_length,
                 segment_ids=segment_ids, 
                 start_position=start_pos, 
                 end_position=end_pos, 
-                span_position=doc_span_pos.tolist(),
+                span_position=doc_span_pos,
                 is_impossible=example.is_impossible, 
                 ner_cate=label_map[example.ner_cate]
                 ))
