@@ -59,7 +59,7 @@ def main():
     tokenizer = BertTokenizer4Tagger.from_pretrained(arg_configs.bert_model, do_lower_case=arg_configs.do_lower_case)
 
     dataset_loaders = MRCNERDataLoader(arg_configs, data_processor, label_list, tokenizer, mode="transform_binary_files", allow_impossible=arg_configs.allow_impossible)
-
+    print("||| Number of Data Processor is : {}".format(arg_configs.num_data_processor))
     train_features = dataset_loaders.convert_examples_to_features(data_sign="train", num_data_processor=arg_configs.num_data_processor)
     dev_features = dataset_loaders.convert_examples_to_features(data_sign="dev", num_data_processor=arg_configs.num_data_processor)
     test_features = dataset_loaders.convert_examples_to_features(data_sign="test", num_data_processor=arg_configs.num_data_processor)
