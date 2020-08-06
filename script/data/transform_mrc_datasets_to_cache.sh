@@ -15,14 +15,16 @@ export PYTHONPATH="$PYTHONPATH:$REPO_PATH"
 # MAX_LEN -> max length for mrc-ner datasets.
 # DATA_SIGN -> should take the value of [conll03, zh_msra, zh_onto, en_onto, genia, ace2004, ace2005, resume].
 # BERT_MODEL_PATH -> path to pre-trained bert model dir.
-DATA_DIR=/data/xiaoya/work/datasets/mrc_ner/zh_onto4
-MAX_LEN=256
-DATA_SIGN=zh_onto
-BERT_MODEL_PATH=/data/nfsdata/nlp/BERT_BASE_DIR/chinese_L-12_H-768_A-12
+DATA_SIGN=$1
+MAX_LEN=$2
+DATA_DIR=$3
+NUM_PROCESSOR=$4
+BERT_MODEL_PATH=$5
 
 
 python3 $REPO_PATH/run/binary_mrc_datasets.py \
 --data_dir $DATA_DIR \
 --max_seq_length $MAX_LEN \
 --data_sign $DATA_SIGN \
+--num_data_processor $NUM_PROCESSOR \
 --bert_model $BERT_MODEL_PATH

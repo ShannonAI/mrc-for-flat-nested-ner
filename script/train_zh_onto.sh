@@ -1,7 +1,6 @@
 #!/usr/bin/env bash 
 # -*- coding: utf-8 -*- 
-# Author: Xiaoy Li 
-# On One 22G TITAN XP
+# Author: Xiaoy Li
 
 
 REPO_PATH=/home/lixiaoya/mrc-for-flat-nested-ner
@@ -27,6 +26,7 @@ SEED=2333
 DATA_SIGN=zh_onto
 MODEL_SIGN=mrc-ner
 ENTITY_SIGN=flat
+NUM_DATA_PROCESSOR=4
 
 # path to pretrained models and data files
 BASE_DATA_DIR=/data
@@ -38,10 +38,11 @@ OUTPUT_PATH=${BASE_DATA_DIR}/output_mrc_ner/${DATA_SIGN}_${MAX_LEN}_${LR}_${TRAI
 mkdir -p ${OUTPUT_PATH}
 
 
-CUDA_VISIBLE_DEVICES=1 python3 $REPO_PATH/run/train_bert_mrc.py \
+CUDA_VISIBLE_DEVICES=3 python3 $REPO_PATH/run/train_bert_mrc.py \
 --data_dir $DATA_PATH \
 --n_gpu $N_GPU \
 --entity_sign $ENTITY_SIGN \
+--num_data_processor $NUM_DATA_PROCESSOR \
 --data_sign $DATA_SIGN \
 --bert_model $BERT_PATH \
 --config_path $CONFIG_PATH \
@@ -59,4 +60,5 @@ CUDA_VISIBLE_DEVICES=1 python3 $REPO_PATH/run/train_bert_mrc.py \
 --num_train_epochs $NUM_EPOCH \
 --seed $SEED \
 --warmup_proportion $WARMUP_PRO \
---gradient_accumulation_steps $GradACC
+--gradient_accumulation_steps $GradACC \
+--fp16

@@ -13,9 +13,10 @@ export PYTHONPATH="$PYTHONPATH:$REPO_PATH"
 
 # TAGGER_DATADIR=$1
 # MRC_DATADIR=$2
+NER_TYPE=$3 # nested, flat
 
-TAGGER_DATADIR=/data/xiaoya/nfs2data_xiaoya/data_repo/data-mrc_ner/flat/msra_zh
-MRC_DATADIR=/data/xiaoya/work/datasets/mrc_ner/zh_msra
+# msra: /data/xiaoya/nfs2data_xiaoya/data_repo/data-mrc_ner/flat/msra_zh
+# mrc-msra: /data/xiaoya/work/datasets/mrc_ner/zh_msra
 
 
-python3 $REPO_PATH/utils/annotation_statistic.py $TAGGER_DATADIR $MRC_DATADIR
+python3 $REPO_PATH/utils/annotation_statistic.py $NER_TYPE $TAGGER_DATADIR $MRC_DATADIR

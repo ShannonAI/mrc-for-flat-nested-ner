@@ -75,17 +75,18 @@ Previous SOTA:
 
 ## Requirements
 
-- Experiments are conducted on a Ubuntu GPU server with Python 3.6.  <br> 
-Run `pip3 install -r requirements.txt`to install packages dependencies.
+- GPU machines with Python 3.6.  <br> 
+	- Install [PyTorch](https://pytorch.org/) >= 1.1.0
+	- Run `pip3 install -r requirements.txt`
 
 -  Download the pretrained BERT checkpoints and transform the checkpoints to PyTorch. <br>
 	- Run the following command and download the pretrained BERT checkpoints. 
-	` ./script/data/download_pretrained_model.sh <dir_to_save_pretrained_ckpt> <model_name>` <br> 
+	`bash ./script/data/download_pretrained_model.sh <dir_to_save_pretrained_ckpt> <model_name>` <br> 
 	`<model_name>` should take the value of `[en_bert_cb, en_bert_cl, en_bert_ucb, en_bert_ucl, en_bert_wwm_cl, en_bert_wwm_ucl, zh_bert]`.
 
 	- Run the following command and transform the checkpoints from tensorflow (.ckpt) to pytorch (.bin). <br>
 **NOTICE**: need to install `tensorflow-gpu==1.15`
-`./script/data/convert_checkpoints_from_tf_to_pytorch.sh <model_sign> <dir_to_bert_model> `<br> 
+`bash ./script/data/convert_checkpoints_from_tf_to_pytorch.sh <model_sign> <dir_to_bert_model> `<br> 
 `<model_sign>` should take the value of `[zh_bert, en_bert_cased_large, en_bert_uncased_large]`. 
 
 - For faster training, install NVIDIA's [Apex](https://github.com/NVIDIA/apex) library:
@@ -100,142 +101,15 @@ pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cud
 
 ## Data Preprocess 
 
-* You can [download](./doc/download.md) our preprocessed MRC-NER datasets or follow the [instruction](./doc/dataset.md) to build your own datasets. <br> 
-
-* For large datasets (English OntoNotes 5.0), generating cached datasets before experiments. 
+You can [download](./doc/download.md) our preprocessed MRC-NER datasets or follow the [instruction](./doc/dataset.md) to build your own datasets. <br> 
+For **large** datasets (English OntoNotes 5.0), run the following command and generate cached datasets before experiments. <br> 
 ```bash 
-./script/data/transform_mrc_datasets_to_cache.sh <data_sign> <max_input_length> <dir_to_mrc_ner_datasets> <num_of_data_processor> <dir_to_bert_model>
-```
-`<data_sign>` should take the value of `[conll03, zh_msra, zh_onto, en_onto, genia, ace2004, ace2005, resume]`.
-
-Firstly you should transform tagging-style annoations to a set of MRC-style  `(Query, Context, Answer)` triples. Here we provide an example to show how these two steps work. We have given the queries in `python3 ./data_preprocess/dump_query2file.py` for you. Feel free to write down your own's queries.
-MRC-Style datasets could be found [here](https://drive.google.com/file/d/1KHRSTL_jn5PxQqz4prQ1No2E2wWcuxOd/view?usp=sharing).
-
-***Step 1: Query Generation***
-
-Write down queries for entity labels in `./data_preprocess/dump_query2file.py` and run `python3 ./data_preprocess/dump_query2file.py` to dump queries to the folder `./data_preprocess/queries`. 
-
-***Step 2: Transform tagger-style annotations to MRC-style triples*** 
-
-Run `./data_preprocess/example/generate_data.py` to generate MRC-style data `data_preprocess/example/mrc-dev_ace05.json` and `data_preprocess/example/mrc-dev_msra.json` for ACE 2005(nested) and Chinese MSRA(flat), respectively. 
-
-
-####  Nested NER 
-
-We take ACE2005 as an example for *NESTED NER* to illustrate the process of data prepration.  
-
-Source files for `ACE2005` contains a list of json in the format : 
-
-```json
-{
-"context": "begala dr . palmisano , again , thanks for staying with us through the break .",
-"label": {
-    "PER": [
-        "1;2",
-        "1;4",
-        "11;12"],
-    "ORG": [
-        "1,2"]
-}
-}
-```
-It assumes queries for ACE2005 should be found in `../data_preprocess/queries/en_ace05.json`. 
-The path for the queries should be registered in dictionary `queries_for_dataset` of `../data_preprocess/query_map.py`. 
-
-Run the following commands to get MRC-style data files.
-
-```python3 
-$ python3 
-> from data_preprocess.generate_mrc_dataset import generate_query_ner_dataset
-> source_file_path = "$PATH-TO-TAGGER-ACE05$/dev_ace05.json"
-> target_file_path = "$PATH-TO-MRC-ACE05$/mrc-dev_ace05.json"
-> entity_sign = "nested" #"nested" for nested-NER; "flat" for flat-NER.
-> dataset_name = "en_ace2005" 
-> query_sign = "default"
-> generate_query_ner_dataset(source_file_path, target_file_path, entity_sign=entity_sign, dataset_name=dataset_name, query_sign=query_sign)
+./script/data/transform_mrc_datasets_to_cache.sh <data_sign> <max_input_length> <dir_to_mrc_ner_datasets> <num_data_processor> <dir_to_bert_model>
 ```
 
-After that, `$PATH-TO-MRC-ACE05$/mrc-dev_ace05.json` contains a list of jsons: 
+* `<data_sign>` should take the value of `[conll03, zh_msra, zh_onto, en_onto, genia, ace2004, ace2005, resume]`.
 
-```json 
-{
-"context": "begala dr . palmisano , again , thanks for staying with us through the break .",
-"end_position": [
-    2,
-    4,
-    12
-    ],
-"entity_label": "PER",
-"impossible": false,
-"qas_id": "4.3",
-"query": "3",
-"span_position": [
-    "1;2",
-    "1;4",
-    "11;12"],
-"start_position": [
-    1,
-    1,
-    11]
-}
-```
-
-####  Flat NER 
-
-Take Chinese MSRA as an example to illuatrate the process for FLAT NER. 
-
-Source files are in CoNLL format and entities are annotated with BMES scheme : 
-
-```
-begala B-PER
-dr M-PER
-palmisano E-PER
-, O
-again O 
-, O
-thanks O
-for O
-staying O
-with O
-us O
-through O
-the O
-break O
-. O
-```
-
-Queries for Chinese MSRA should be found in `./data_preprocess/queries/zh_msra.json`. 
-The path for the queries should be registered in dictionary `queries_for_dataset` of `./data_preprocess/query_map.py`. 
-
-Run the following commands to get MRC-style datasets: 
-
-```python3 
-$ python3 
-> from data_preprocess.generate_mrc_dataset import generate_query_ner_dataset
-> source_file_path = "$PATH-TO-TAGGER-ZhMSRA$/dev_msra.bmes"
-> target_file_path = "$PATH-TO-MRC-ZhMSRA$/mrc-dev_msra.json"
-> entity_sign = "flat" #"nested" for nested-NER; "flat" for flat-NER.
-> dataset_name = "zh_msra" 
-> query_sign = "default"
-> generate_query_ner_dataset(source_file_path, target_file_path, entity_sign=entity_sign, dataset_name=dataset_name, query_sign=query_sign)
-```
-
-After that, `$PATH-TO-MRC-ZhMSRA$/mrc-dev_msra.json` contains a list of jsons: 
-
-```json 
-{
-"context": "begala dr . palmisano , again , thanks for staying with us through the break .",
-"end_position": [2],
-"entity_label": "PER",
-"impossible": false,
-"qas_id": "4.3",
-"query": "3",
-"span_position": [
-    "1;2"],
-"start_position": [1]
-}
-```
-
+* `<num_data_processor>` denotes the number of processor for transforming data examples to features. 
 
 ## Training BERT MRC-NER Model
 
@@ -244,10 +118,9 @@ You can directly use the following commands to train the **MRC-NER** model with 
 `entity_sign` should take the value of `[flat, nested]`. <br> 
 
 ```bash 
-#!/usr/bin/env bash 
-# -*- coding: utf-8 -*- 
 
-FOLDER_PATH=/PATH-TO-REPO/mrc-for-flat-nested-ner
+REPO_PATH=/PATH-TO-REPO/mrc-for-flat-nested-ner
+export PYTHONPATH="$PYTHONPATH:$REPO_PATH"
 CONFIG_PATH=${FOLDER_PATH}/config/zh_bert.json
 DATA_PATH=/PATH-TO-BERT_MRC-DATA/zh_ontonotes4
 BERT_PATH=/PATH-TO-BERT-CHECKPOINTS/chinese_L-12_H-768_A-12
@@ -255,30 +128,30 @@ EXPORT_DIR=/PATH-TO-SAVE-MODEL-CKPT
 data_sign=zh_onto 
 entity_sign=flat
 
-export PYTHONPATH=${FOLDER_PATH}
-CUDA_VISIBLE_DEVICES=0 python3 ${FOLDER_PATH}/run/train_bert_mrc.py \
---config_path ${CONFIG_PATH} \
---data_dir ${DATA_PATH} \
---bert_model ${BERT_PATH} \
---output_dir ${EXPORT_DIR} \
---entity_sign ${entity_sign} \
---data_sign ${data_sign} \
---n_gpu 1 \
---export_model True \
---dropout 0.3 \
---checkpoint 600 \
---max_seq_length 100 \
---train_batch_size 16 \
---dev_batch_size 16 \
---test_batch_size 16 \
---learning_rate 8e-6 \
---weight_start 1.0 \
---weight_end 1.0 \
---weight_span 1.0 \
---num_train_epochs 10 \
---seed 2333 \
---warmup_proportion -1 \
---gradient_accumulation_steps 1
+CUDA_VISIBLE_DEVICES=3 python3 $REPO_PATH/run/train_bert_mrc.py \
+--data_dir $DATA_PATH \
+--n_gpu $N_GPU \
+--entity_sign $ENTITY_SIGN \
+--num_data_processor $NUM_DATA_PROCESSOR \
+--data_sign $DATA_SIGN \
+--bert_model $BERT_PATH \
+--config_path $CONFIG_PATH \
+--output_dir $OUTPUT_PATH \
+--dropout $DP \
+--checkpoint $CHECKPOINT \
+--max_seq_length $MAX_LEN \
+--train_batch_size $TRAIN_BZ \
+--dev_batch_size $DEV_BZ \
+--test_batch_size $TEST_BZ \
+--learning_rate $LR \
+--weight_start $START_LRATIO \
+--weight_end $END_LRATIO \
+--weight_span $SPAN_LRATIO \
+--num_train_epochs $NUM_EPOCH \
+--seed $SEED \
+--warmup_proportion $WARMUP_PRO \
+--gradient_accumulation_steps $GradACC \
+--fp16
 ```
 
 
@@ -289,8 +162,6 @@ You can directly use the following commands to evaluate the **MRC-NER** model af
 `entity_sign` should take the value of `[flat, nested]`. <br> 
 
 ```bash 
-#!/usr/bin/env bash 
-# -*- coding: utf-8 -*- 
 
 REPO_PATH=/PATH-TO-REPO/mrc-for-flat-nested-ner 
 CONFIG_PATH=${FOLDER_PATH}/config/zh_bert.json

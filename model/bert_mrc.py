@@ -75,9 +75,8 @@ class BertQueryNER(nn.Module):
             total_loss = self.loss_wb * start_loss + self.loss_we * end_loss + self.loss_ws * span_loss
             return total_loss 
         else:
-            span_logits = torch.sigmoid(span_logits) # batch x seq_len x seq_len
-            start_logits = torch.argmax(start_logits, dim=-1)
-            end_logits = torch.argmax(end_logits, dim=-1)
-
-            return start_logits, end_logits, span_logits
+            span_scores = torch.sigmoid(span_logits) # batch x seq_len x seq_len
+            start_labels = torch.argmax(start_logits, dim=-1)
+            end_labels = torch.argmax(end_logits, dim=-1)
+            return start_labels, end_labels, span_scores
 

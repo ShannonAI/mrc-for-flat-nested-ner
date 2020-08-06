@@ -40,8 +40,15 @@ def statistic_entity_for_sequence_labeling(input_file_path, ner_type="flat"):
                     entity_statistic_dict[entity_item.tag] = 1
                 else:
                     entity_statistic_dict[entity_item.tag] += 1
-    elif ner_type == "nest":
-        pass
+    elif ner_type == "nested":
+        with open(input_file_path, "r") as f:
+            data_instances = json.load(f)
+            for item in data_instances:
+                for item_entity_type in item["label"].keys():
+                    if item_entity_type not in entity_statistic_dict.keys():
+                        entity_statistic_dict[item_entity_type] = len(item["label"][item_entity_type])
+                    else:
+                        entity_statistic_dict[item_entity_type] += len(item["label"][item_entity_type])
     else:
         raise ValueError("Please notice your entity type do not exists !!")
 
@@ -85,47 +92,45 @@ def statistic_entity_for_mrc_ner(input_file_path, ner_type="flat"):
     return entity_statistic_dict
 
 
-def run_stat_for_tagger_input(data_dir):
+def run_stat_for_tagger_input(data_dir, ner_type):
     print("*** *** *** *** "*15)
     print("TAGGER datasets -> ")
     print("*** *** *** *** "*15)
-    # data_dir = "/data/nfsdata/nlp/datasets/sequence_labeling/CN_NER/OntoNote4NER"
-    ner_type = "flat"  # choices are ["flat", "nest"]
     entity_statistic_dict_summary = dict()
     for data_type in ["train", "dev", "test"]:
         if ner_type == "flat":
-            input_file_path = os.path.join(data_dir, data_type + ".char.bmes")
-        elif ner_type == "nest":
-            input_file_path = os.path.join(data_dir, )
+            input_file_path = os.path.join(data_dir, "{}.char.bmes".format(data_type))
+        elif ner_type == "nested":
+            input_file_path = os.path.join(data_dir, "{}.ner.json".format(data_type))
+        else:
+            raise ValueError("the type of entities does not exists.")
         print("=*=" * 20)
         print("*** *** {} *** ***".format(data_type))
-        tmp_entity_statistic_dict = statistic_entity_for_sequence_labeling(input_file_path, ner_type="flat")
+        tmp_entity_statistic_dict = statistic_entity_for_sequence_labeling(input_file_path, ner_type=ner_type)
         entity_statistic_dict_summary[data_type] = tmp_entity_statistic_dict
 
     return entity_statistic_dict_summary
 
 
-def run_stat_for_mrc_input(data_dir):
+def run_stat_for_mrc_input(data_dir, ner_type):
     print("*** *** *** *** "*15)
     print("MRC-NER datasets -> ")
     print("*** *** *** *** "*15)
-    # data_dir = "/data/xiaoya/nfs2data_xiaoya/dataset/mrc-ner/zh_ontonotes4"
-    ner_type = "flat"  # choices are ["flat", "nest"]
     entity_statistic_dict_summary = dict()
     for data_type in ["train", "dev", "test"]:
         input_file_path = os.path.join(data_dir, "mrc-ner.{}".format(data_type))
         print("=*=" * 20)
         print("*** *** {} *** ***".format(data_type))
-        tmp_entity_statistic_dict = statistic_entity_for_mrc_ner(input_file_path, ner_type="flat")
+        tmp_entity_statistic_dict = statistic_entity_for_mrc_ner(input_file_path, ner_type=ner_type)
         entity_statistic_dict_summary[data_type] = tmp_entity_statistic_dict
 
     return entity_statistic_dict_summary
 
 
 
-def main(tagger_data_dir, mrc_data_dir):
-    tagger_statistic_summary = run_stat_for_tagger_input(tagger_data_dir)
-    mrc_statistic_summary = run_stat_for_mrc_input(mrc_data_dir)
+def main(tagger_data_dir, mrc_data_dir, ner_type):
+    tagger_statistic_summary = run_stat_for_tagger_input(tagger_data_dir, ner_type)
+    mrc_statistic_summary = run_stat_for_mrc_input(mrc_data_dir, ner_type)
     # the number of entity should be the same for mrc-ner and sequence-tagger
     entity_type = [tmp_k for tmp_k in mrc_statistic_summary.keys()]
     for entity_item in entity_type:
@@ -134,8 +139,9 @@ def main(tagger_data_dir, mrc_data_dir):
 
 
 if __name__ == "__main__":
-    tagger_data_dir = sys.argv[1]
-    mrc_data_dir = sys.argv[2]
-    main(tagger_data_dir, mrc_data_dir)
-    # python3 annotation_statistic.py <path_to_tagger_data_dir> <path_to_mrc_data_dir>
+    ner_type = sys.argv[1] # flat, nested
+    tagger_data_dir = sys.argv[2]
+    mrc_data_dir = sys.argv[3]
+    main(tagger_data_dir, mrc_data_dir, ner_type)
+    # python3 annotation_statistic.py <ner_type> <path_to_tagger_data_dir> <path_to_mrc_data_dir>
 

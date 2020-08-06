@@ -10,7 +10,6 @@
 import json
 from typing import List, Set, Tuple
 
-
 def mask_span_f1(batch_preds, batch_labels, batch_masks=None, label_list: List[str] = None,
                  output_path = None):
     """

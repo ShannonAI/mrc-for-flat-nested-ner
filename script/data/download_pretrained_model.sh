@@ -12,6 +12,7 @@ BERT_PRETRAIN_CKPT=$1
 MODEL_NAME=$2
 
 
+
 if [[ $MODEL_NAME == "en_bert_cb" ]]; then
     mkdir -p $BERT_PRETRAIN_CKPT
     echo "DownLoad English BERT-Base, Cased"

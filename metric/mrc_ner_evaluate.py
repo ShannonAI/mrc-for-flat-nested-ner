@@ -39,7 +39,7 @@ def update_label_lst(label_lst):
 
 
 
-def flat_transform_bmes_label(start_labels, end_labels, span_labels, ner_cate, threshold=0.3):
+def flat_transform_bmes_label(start_labels, end_labels, span_labels, ner_cate, threshold=1):
     bmes_labels = len(start_labels)*["O"]
     start_labels = [idx for idx, tmp in enumerate(start_labels) if tmp!= 0]
     end_labels = [idx for idx, tmp in enumerate(end_labels) if tmp != 0]
@@ -56,8 +56,8 @@ def flat_transform_bmes_label(start_labels, end_labels, span_labels, ner_cate, t
             continue 
         else:
             tmp_end = min(tmp_end)
-        score = math.log(span_labels[tmp_start][tmp_end])
-        if score >= threshold:
+        score = span_labels[tmp_start][tmp_end]
+        if score >= 1:
             if tmp_start != tmp_end:
                 for i in range(tmp_start+1, tmp_end):
                     bmes_labels[i] = "M-{}".format(ner_cate)
@@ -85,7 +85,6 @@ def nested_transform_span_triple(start_labels, end_labels, span_labels, ner_cate
                 span_triple_lst.append(tmp_tag)
 
     return span_triple_lst 
-
 
 
 def flat_ner_performance(pred_start, pred_end, pred_span, \
@@ -123,11 +122,11 @@ def flat_ner_performance(pred_start, pred_end, pred_span, \
         acc_lst = []
 
 
-        for pred_start_item, pred_end_item, pred_span_item, gold_start_item, gold_end_item, gold_span_item, ner_cate_item in zip(pred_start, pred_end, \
-                pred_span, gold_start, gold_end, gold_span, ner_cate):
+        for  pred_start_item, pred_end_item, pred_span_item, gold_start_item, gold_end_item, gold_span_item, ner_cate_item in zip(pred_start, pred_end, pred_span, gold_start, gold_end, gold_span, ner_cate):
 
-            item_pred_bmes_idx, item_gold_bmes_idx, item_pred_bmes_label, item_gold_bmes_label = flat_ner_performance(pred_start_item, pred_end_item, pred_span_item, gold_start_item, \
-            gold_end_item, gold_span_item, ner_cate_item, label_lst, dims=1)
+            item_pred_bmes_idx, item_gold_bmes_idx, item_pred_bmes_label, item_gold_bmes_label = flat_ner_performance(pred_start_item, pred_end_item, pred_span_item,
+                                                                                                                      gold_start_item, gold_end_item, gold_span_item,
+                                                                                                                      ner_cate_item, label_lst, dims=1)
 
             pred_bmes_idx_lst.append(item_pred_bmes_idx)
             gold_bmes_idx_lst.append(item_gold_bmes_idx)
@@ -151,8 +150,7 @@ def flat_ner_performance(pred_start, pred_end, pred_span, \
 
 
 
-def nested_ner_performance(pred_start, pred_end, pred_span, \
-    gold_start, gold_end, gold_span, ner_cate, label_lst, threshold=0.5, dims=2):
+def nested_ner_performance(pred_start, pred_end, pred_span, gold_start, gold_end, gold_span, ner_cate, label_lst, threshold=0.5, dims=2):
 
     # transform label index to label tag: "3" -> "per"
     cate_idx2label = {idx: value for idx, value in enumerate(label_lst)}
