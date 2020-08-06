@@ -56,8 +56,8 @@ def flat_transform_bmes_label(start_labels, end_labels, span_labels, ner_cate, t
             continue 
         else:
             tmp_end = min(tmp_end)
-        score = span_labels[tmp_start][tmp_end]
-        if score >= 1:
+        score = math.log(span_labels[tmp_start][tmp_end])
+        if score >= 0.5:
             if tmp_start != tmp_end:
                 for i in range(tmp_start+1, tmp_end):
                     bmes_labels[i] = "M-{}".format(ner_cate)

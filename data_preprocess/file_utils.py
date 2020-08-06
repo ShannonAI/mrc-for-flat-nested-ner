@@ -11,7 +11,7 @@
 def export_conll(sentence, label, export_file_path, dim=2):
     """
     Args:
-        sentence: a list of sentece of chars [["北", "京", "天", "安", "门"], ["真", "相", "警", 告"]]
+        sentence: a list of sentence of chars [["北", "京", "天", "安", "门"], ["真", "相", "警", 告"]]
         label: a list of labels [["B", "M", "E", "S", "O"], ["O", "O", "S", "S"]] 
     Desc:
         export tagging data into conll format 
