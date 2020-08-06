@@ -19,11 +19,10 @@ For any question, please feel free to contact xiaoya_li@shannonai.com or post Gi
 ## Content
 1. [Overview](#overview)
 2. [Experimental Results on Flat/Nested NER Datasets](#experimental-results-on-flat-nested-ner-datasets)
-3. [Requirements and Installation](#requirements-and-installation)
+3. [Requirements](#requirements)
 4. [Data Preprocess](#data-preprocess)
 5. [Training BERT MRC-NER Model](#training-bert-mrc-ner-model)
 6. [Evaluating the Trained Model](#evaluating-the-trained-model)
-7. [Working with New Datasets](#working-with-new-datasets) 
 7. [Descriptions of Directories](#descriptions-of-directories)
 8. [Contact](#contact)
 
@@ -184,9 +183,6 @@ CUDA_VISIBLE_DEVICES=0 python3 ${REPO_PATH}/run/evaluate_mrc_ner.py \
 --n_gpu 1 \
 --seed 2333
 ```
-## Working with New Datasets
-
-Please follow the instructions[./doc/dataset.md] for working with new NER datasets.
 
 ## Descriptions of Directories 
 
