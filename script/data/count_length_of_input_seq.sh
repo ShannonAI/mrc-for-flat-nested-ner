@@ -14,12 +14,12 @@ export PYTHONPATH="$PYTHONPATH:$REPO_PATH"
 
 DATA_DIR=$1
 CLIP_LEN=$2
-BERT_MODEL=$3
+BERT_MODEL_DIR=$3
 
 
 python3 $REPO_PATH/utils/length_statistic.py \
 --data_dir $DATA_DIR \
---bert_model $BERT_MODEL \
+--bert_model $BERT_MODEL_DIR \
 --clip_length $CLIP_LEN
 # --do_lower_case
 

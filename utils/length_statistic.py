@@ -25,7 +25,7 @@ def collect_arguments():
 
     # required
     parser.add_argument("--data_dir", required=True, default="/data/mrc-ner/zh_onto", type=str, help="")
-    parser.add_argument("--bert_model", required=True, default="/data/pretrained_ckpt/chinese_L-12_H-768_A-12", type=str, help="")
+    parser.add_argument("--bert_model_dir", required=True, default="/data/pretrained_ckpt/chinese_L-12_H-768_A-12", type=str, help="")
     parser.add_argument("--clip_length", required=True, default=200, type=int)
 
     # optional
@@ -36,10 +36,10 @@ def collect_arguments():
 
 
 def run_analysis_for_input_length(arg_configs):
-    tokenizer = BertTokenizer4Tagger.from_pretrained(arg_configs.bert_model, do_lower_case=arg_configs.do_lower_case)
+    tokenizer = BertTokenizer4Tagger.from_pretrained(arg_configs.bert_model_dir, do_lower_case=arg_configs.do_lower_case)
     print("%=%"*15)
     print("data_dir", "--->", arg_configs.data_dir)
-    print("bert_model", "--->", arg_configs.bert_model)
+    print("bert_model_dir", "--->", arg_configs.bert_model_dir)
     print("clip_length", "--->", arg_configs.clip_length)
 
     for data_type in ["train", "dev", "test"]:

@@ -63,7 +63,6 @@ def flat_transform_bmes_label(start_labels, end_labels, span_labels, ner_cate, t
                     bmes_labels[i] = "M-{}".format(ner_cate)
             else:
                 bmes_labels[tmp_end] = "S-{}".format(ner_cate)
-
     return bmes_labels 
 
 

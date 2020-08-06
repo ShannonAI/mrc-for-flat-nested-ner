@@ -24,6 +24,8 @@ elif [[ $MODEL == "en_bert_cased_large" ]]; then
   MODEL_DIR=cased_L-24_H-1024_A-16
 elif [[ $MODEL == "en_bert_uncased_large" ]]; then
   MODEL_DIR=uncased_L-24_H-1024_A-16
+elif [[ $MODEL == "en_bert_wwm_cased_large" ]]; then
+  MODEL_DIR=wwm_cased_L-24_H-1024_A-16
 else
     echo 'Unknown ARG1 (Model Sign)'
 fi
