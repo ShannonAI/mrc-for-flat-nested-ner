@@ -79,17 +79,13 @@ Previous SOTA:
 Run `pip3 install -r requirements.txt`to install packages dependencies.
 
 * Download the pretrained BERT checkpoints and transform the checkpoints to PyTorch. <br>
-1. Run the following command and download the pretrained BERT checkpoints. 
-```bash 
-./script/data/download_pretrained_model.sh <dir_to_save_pretrained_ckpt> <model_name>
-```
+- Run the following command and download the pretrained BERT checkpoints. 
+` ./script/data/download_pretrained_model.sh <dir_to_save_pretrained_ckpt> <model_name>` <br> 
 `<model_name>` should take the value of `[en_bert_cb, en_bert_cl, en_bert_ucb, en_bert_ucl, en_bert_wwm_cl, en_bert_wwm_ucl, zh_bert]`.
 
-2. Run the following command and transform the checkpoints from tensorflow (.ckpt) to pytorch (.bin). <br>
+- Run the following command and transform the checkpoints from tensorflow (.ckpt) to pytorch (.bin). <br>
 **NOTICE**: need to install `tensorflow-gpu==1.15`
-```bash 
-./script/data/convert_checkpoints_from_tf_to_pytorch.sh <model_sign> <dir_to_bert_model> 
-```
+`./script/data/convert_checkpoints_from_tf_to_pytorch.sh <model_sign> <dir_to_bert_model> `<br> 
 `<model_sign>` should take the value of `[zh_bert, en_bert_cased_large, en_bert_uncased_large]`. 
 
 
@@ -342,4 +338,12 @@ config | Config files for BERT models.
 
 Feel free to discuss papers/code with us through issues/emails!
 xiaoya_li AT shannonai.com
+
+
+
+
+
+
+
+
 
