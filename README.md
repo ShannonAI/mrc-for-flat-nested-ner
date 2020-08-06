@@ -75,22 +75,20 @@ Previous SOTA:
 
 ## Requirements
 
-* Experiments are conducted on a Ubuntu GPU server with Python 3.6.  <br> 
+- Experiments are conducted on a Ubuntu GPU server with Python 3.6.  <br> 
 Run `pip3 install -r requirements.txt`to install packages dependencies.
 
-* Download the pretrained BERT checkpoints and transform the checkpoints to PyTorch. <br>
-- Run the following command and download the pretrained BERT checkpoints. 
-` ./script/data/download_pretrained_model.sh <dir_to_save_pretrained_ckpt> <model_name>` <br> 
-`<model_name>` should take the value of `[en_bert_cb, en_bert_cl, en_bert_ucb, en_bert_ucl, en_bert_wwm_cl, en_bert_wwm_ucl, zh_bert]`.
+-  Download the pretrained BERT checkpoints and transform the checkpoints to PyTorch. <br>
+	- Run the following command and download the pretrained BERT checkpoints. 
+	` ./script/data/download_pretrained_model.sh <dir_to_save_pretrained_ckpt> <model_name>` <br> 
+	`<model_name>` should take the value of `[en_bert_cb, en_bert_cl, en_bert_ucb, en_bert_ucl, en_bert_wwm_cl, en_bert_wwm_ucl, zh_bert]`.
 
-- Run the following command and transform the checkpoints from tensorflow (.ckpt) to pytorch (.bin). <br>
+	- Run the following command and transform the checkpoints from tensorflow (.ckpt) to pytorch (.bin). <br>
 **NOTICE**: need to install `tensorflow-gpu==1.15`
 `./script/data/convert_checkpoints_from_tf_to_pytorch.sh <model_sign> <dir_to_bert_model> `<br> 
 `<model_sign>` should take the value of `[zh_bert, en_bert_cased_large, en_bert_uncased_large]`. 
 
-
-
-* For faster training, install NVIDIA's [Apex](https://github.com/NVIDIA/apex) library:
+- For faster training, install NVIDIA's [Apex](https://github.com/NVIDIA/apex) library:
 	
 ```bash
 git clone https://github.com/NVIDIA/apex
