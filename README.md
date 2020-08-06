@@ -19,10 +19,11 @@ For any question, please feel free to contact xiaoya_li@shannonai.com or post Gi
 ## Content
 1. [Overview](#overview)
 2. [Experimental Results on Flat/Nested NER Datasets](#experimental-results-on-flat-nested-ner-datasets)
-3. [Dependencies](#dependencies)
+3. [Requirements and Installation](#requirements-and-installation)
 4. [Data Preprocess](#data-preprocess)
 5. [Training BERT MRC-NER Model](#training-bert-mrc-ner-model)
 6. [Evaluating the Trained Model](#evaluating-the-trained-model)
+7. [Working with New Datasets](#working-with-new-datasets) 
 7. [Descriptions of Directories](#descriptions-of-directories)
 8. [Contact](#contact)
 
@@ -72,16 +73,46 @@ Previous SOTA:
 * [Seq2Seq-BERT](https://www.aclweb.org/anthology/P19-1527/) for ACE 2005 and GENIA.
 * [ARN](https://www.aclweb.org/anthology/P19-1511/) for KBP2017. 
 
-## Dependencies 
+## Requirements
 
 * Experiments are conducted on a Ubuntu GPU server with Python 3.6.  <br> 
 Run `pip3 install -r requirements.txt`to install packages dependencies.
 
-* Download and unzip `BERT-Base, Uncased English` and `BERT-Base, Chinese` pretrained checkpoints. Then follow the [guideline](https://huggingface.co/transformers/v2.5.0/converting_tensorflow_models.html) from huggingface to convert TF checkpoints to PyTorch. 
+* Download the pretrained BERT checkpoints and transform the checkpoints to PyTorch. <br>
+1. Run the following command and download the pretrained BERT checkpoints. 
+```bash 
+./script/data/download_pretrained_model.sh <dir_to_save_pretrained_ckpt> <model_name>
+```
+`<model_name>` should take the value of `[en_bert_cb, en_bert_cl, en_bert_ucb, en_bert_ucl, en_bert_wwm_cl, en_bert_wwm_ucl, zh_bert]`.
+
+2. Run the following command and transform the checkpoints from tensorflow (.ckpt) to pytorch (.bin). <br>
+**NOTICE**: need to install `tensorflow-gpu==1.15`
+```bash 
+./script/data/convert_checkpoints_from_tf_to_pytorch.sh <model_sign> <dir_to_bert_model> 
+```
+`<model_sign>` should take the value of `[zh_bert, en_bert_cased_large, en_bert_uncased_large]`. 
 
 
+
+* For faster training, install NVIDIA's [Apex](https://github.com/NVIDIA/apex) library:
+	
+```bash
+git clone https://github.com/NVIDIA/apex
+cd apex 
+pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" \
+  --global-option="--deprecated_fused_adam" --global-option="--xentropy" \
+  --global-option="--fast_multihead_attn" ./
+```
 
 ## Data Preprocess 
+
+* You can [download](./doc/download.md) our preprocessed MRC-NER datasets or follow the [instruction](./doc/dataset.md) to build your own datasets. <br> 
+
+* For large datasets (English OntoNotes 5.0), generating cached datasets before experiments. 
+```bash 
+./script/data/transform_mrc_datasets_to_cache.sh <data_sign> <max_input_length> <dir_to_mrc_ner_datasets> <num_of_data_processor> <dir_to_bert_model>
+```
+`<data_sign>` should take the value of `[conll03, zh_msra, zh_onto, en_onto, genia, ace2004, ace2005, resume]`.
 
 Firstly you should transform tagging-style annoations to a set of MRC-style  `(Query, Context, Answer)` triples. Here we provide an example to show how these two steps work. We have given the queries in `python3 ./data_preprocess/dump_query2file.py` for you. Feel free to write down your own's queries.
 MRC-Style datasets could be found [here](https://drive.google.com/file/d/1KHRSTL_jn5PxQqz4prQ1No2E2wWcuxOd/view?usp=sharing).
@@ -288,6 +319,9 @@ CUDA_VISIBLE_DEVICES=0 python3 ${REPO_PATH}/run/evaluate_mrc_ner.py \
 --n_gpu 1 \
 --seed 2333
 ```
+## Working with New Datasets
+
+Please follow the instructions[./doc/dataset.md] for working with new NER datasets.
 
 ## Descriptions of Directories 
 
@@ -308,12 +342,4 @@ config | Config files for BERT models.
 
 Feel free to discuss papers/code with us through issues/emails!
 xiaoya_li AT shannonai.com
-
-
-
-
-
-
-
-
 
