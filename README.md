@@ -81,12 +81,12 @@ Previous SOTA:
 -  Download the pretrained BERT checkpoints and transform the checkpoints to PyTorch. <br>
 	- Run the following command and download the pretrained BERT checkpoints. 
 	`bash ./script/data/download_pretrained_model.sh <dir_to_save_pretrained_ckpt> <model_name>` <br> 
-	`<model_name>` should take the value of `[en_bert_cb, en_bert_cl, en_bert_ucb, en_bert_ucl, en_bert_wwm_cl, en_bert_wwm_ucl, zh_bert]`.
+	`<model_name>` should take the value of `[en_bert_cl, en_bert_wwm_cl, zh_bert]`.
 
 	- Run the following command and transform the checkpoints from tensorflow (.ckpt) to pytorch (.bin). <br>
 **NOTICE**: need to install `tensorflow-gpu==1.15`
 `bash ./script/data/convert_checkpoints_from_tf_to_pytorch.sh <model_sign> <dir_to_bert_model> `<br> 
-`<model_sign>` should take the value of `[zh_bert, en_bert_cased_large, en_bert_uncased_large]`. 
+`<model_sign>` should take the value of `[zh_bert, en_bert_cased_large, en_bert_wwm_cased_large]`. 
 
 - For faster training, install NVIDIA's [Apex](https://github.com/NVIDIA/apex) library:
 	
