@@ -153,6 +153,7 @@ CUDA_VISIBLE_DEVICES=3 python3 $REPO_PATH/run/train_bert_mrc.py \
 --fp16
 ```
 
+** Notice: ** We recommend set `--num_data_processor $NUM_DATA_PROCESSOR` to `1` for small datasets and enlarge for large datasets like English OntoNotes 5.0. 
 
 ## Evaluating the Trained Model
 
