@@ -37,7 +37,7 @@ Please notice that merge the args_dict and json_config ... ...
   "test_batch_size": 16,
   "checkpoint": 2400,
   "learning_rate": 1e-05,
-  "num_train_epochs": 15,
+  "num_train_epochs": 12,
   "warmup_proportion": -1.0,
   "local_rank": -1,
   "gradient_accumulation_steps": 1,
@@ -647,24 +647,9 @@ current training loss is :
 DEV: loss, acc, precision, recall, f1
 0.0017 0.9711 0.9387 0.9507 0.9447
 -*--*--*--*--*--*--*--*--*--*--*--*--*--*--*-
-######################################################################
-EPOCH:  11
-current learning rate 5.688000922764599e-06
-current learning rate 5.688000922764599e-06
--*--*--*--*--*--*--*--*--*--*--*--*--*--*--*-
-current training loss is :
-1.7695128917694092e-08
-............................................................
-DEV: loss, acc, precision, recall, f1
-0.0017 0.9725 0.9427 0.9456 0.9441
--*--*--*--*--*--*--*--*--*--*--*--*--*--*--*-
--*--*--*--*--*--*--*--*--*--*--*--*--*--*--*-
-current training loss is :
-3.253840623074211e-05
-............................................................
-DEV: loss, acc, precision, recall, f1
-0.0017 0.9716 0.9371 0.9502 0.9436
--*--*--*--*--*--*--*--*--*--*--*--*--*--*--*-
--*--*--*--*--*--*--*--*--*--*--*--*--*--*--*-
-current training loss is :
-4.8201720346696675e-05
+=&==&==&==&==&==&==&==&==&==&==&==&==&==&==&=
+Best DEV : overall best loss, acc, precision, recall, f1
+0.0017 0.9721 0.9458 0.9456 0.9457
+scores on TEST when Best DEV:loss, acc, precision, recall, f1
+0.0018 0.9748 0.9614 0.956 0.9587
+=&==&==&==&==&==&==&==&==&==&==&==&==&==&==&=
