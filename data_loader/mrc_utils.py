@@ -63,7 +63,8 @@ class InputFeatures(object):
         ner_cate, 
         start_position=None, 
         end_position=None, 
-        span_position=None, 
+        span_position=None,
+        span_label_mask=None,
         is_impossible=None):
 
         self.unique_id = unique_id 
@@ -75,7 +76,8 @@ class InputFeatures(object):
         self.start_position = start_position 
         self.end_position = end_position 
         self.span_position = span_position 
-        self.is_impossible = is_impossible 
+        self.is_impossible = is_impossible
+        self.span_label_mask = span_label_mask
 
 
 def convert_examples_to_features(examples, tokenizer, label_lst, max_seq_length, is_training=True, 
@@ -149,8 +151,7 @@ def convert_examples_to_features(examples, tokenizer, label_lst, max_seq_length,
 
         assert len(all_doc_tokens) == len(doc_start_pos) 
         assert len(all_doc_tokens) == len(doc_end_pos) 
-        assert len(doc_start_pos) == len(doc_end_pos) 
-
+        assert len(doc_start_pos) == len(doc_end_pos)
 
         if len(all_doc_tokens) >= max_tokens_for_doc:
             all_doc_tokens = all_doc_tokens[: max_tokens_for_doc]
@@ -158,6 +159,7 @@ def convert_examples_to_features(examples, tokenizer, label_lst, max_seq_length,
             doc_end_pos = doc_end_pos[: max_tokens_for_doc]
         if len(example.start_position) == 0 and len(example.end_position) == 0:
             doc_span_pos = np.zeros((max_seq_length, max_seq_length), dtype=int)
+
 
         # input_mask: 
         #   the mask has 1 for real tokens and 0 for padding tokens. 
@@ -197,8 +199,10 @@ def convert_examples_to_features(examples, tokenizer, label_lst, max_seq_length,
         start_pos.append(0)
         end_pos.append(0)        
         input_mask = [1] * len(input_tokens)
-
         input_ids = tokenizer.convert_tokens_to_ids(input_tokens)
+
+        span_label_mask = np.zeros((max_seq_length, max_seq_length), dtype=int)
+        span_label_mask[len(query_tokens):len(input_ids), len(query_tokens):len(input_ids)] = 1
 
         # zero-padding up to the sequence length 
         if len(input_ids) < max_seq_length and pad_sign:
@@ -215,6 +219,7 @@ def convert_examples_to_features(examples, tokenizer, label_lst, max_seq_length,
         start_pos = np.array(start_pos, dtype=np.int32)
         end_pos = np.array(end_pos, dtype=np.int32)
         doc_span_pos = np.array(doc_span_pos, dtype=np.int32)
+        span_label_mask = np.array(span_label_mask, dtype=np.int32)
 
         features.append(
             InputFeatures(
@@ -226,6 +231,7 @@ def convert_examples_to_features(examples, tokenizer, label_lst, max_seq_length,
                 start_position=start_pos, 
                 end_position=end_pos, 
                 span_position=doc_span_pos,
+                span_label_mask=span_label_mask,
                 is_impossible=example.is_impossible, 
                 ner_cate=label_map[example.ner_cate]
                 ))

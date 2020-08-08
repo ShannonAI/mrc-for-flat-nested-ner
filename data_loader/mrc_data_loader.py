@@ -93,6 +93,13 @@ class MRCNERDataLoader(object):
         elif len(collection_of_preprocessed_cache) != 0:
             for item_of_preprocessed_cache in collection_of_preprocessed_cache:
                 os.remove(item_of_preprocessed_cache)
+            for idx in range(num_data_processor):
+                start = size_of_one_process * idx
+                end = (idx+1) * size_of_one_process if (idx+1)* size_of_one_process < total_examples else total_examples
+                sliced_examples = examples[start:end]
+                sliced_features = convert_examples_to_features(sliced_examples, self.tokenizer, self.label_list, self.max_seq_length, allow_impossible=self.allow_impossible)
+                export_features_to_cache_file(idx, sliced_features, num_data_processor)
+            del examples
         else:
             for idx in range(num_data_processor):
                 start = size_of_one_process * idx
@@ -125,11 +132,12 @@ class MRCNERDataLoader(object):
         input_ids = torch.tensor([f.input_ids for f in features], dtype=torch.long)
         input_mask = torch.tensor([f.input_mask for f in features], dtype=torch.long)
         segment_ids = torch.tensor([f.segment_ids for f in features], dtype=torch.long)
-        start_pos = torch.tensor([f.start_position for f in features], dtype=torch.long)
+        start_pos = torch.tensor([f.start_position for f in features], dtype=torch.long)   
         end_pos = torch.tensor([f.end_position for f in features], dtype=torch.long)
         span_pos = torch.tensor([f.span_position for f in features], dtype=torch.long)
         ner_cate = torch.tensor([f.ner_cate for f in features], dtype=torch.long)
-        dataset = TensorDataset(input_ids, input_mask, segment_ids, start_pos, end_pos, span_pos, ner_cate)
+        span_label_mask = torch.tensor([f.span_label_mask for f in features], dtype=torch.long)
+        dataset = TensorDataset(input_ids, input_mask, segment_ids, start_pos, end_pos, span_pos, span_label_mask, ner_cate)
         
         if data_sign == "train":
             datasampler = SequentialSampler(dataset) # RandomSampler(dataset)

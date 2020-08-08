@@ -48,7 +48,6 @@ def flat_transform_bmes_label(start_labels, end_labels, span_labels, ner_cate, t
         bmes_labels[start_item] = "B-{}".format(ner_cate)
     for end_item in end_labels:
         bmes_labels[end_item] = "E-{}".format(ner_cate)
-    
 
     for tmp_start in start_labels:
         tmp_end = [tmp for tmp in end_labels if tmp >= tmp_start]
@@ -56,8 +55,8 @@ def flat_transform_bmes_label(start_labels, end_labels, span_labels, ner_cate, t
             continue 
         else:
             tmp_end = min(tmp_end)
-        score = math.log(span_labels[tmp_start][tmp_end])
-        if score >= 0.5:
+        score = span_labels[tmp_start][tmp_end]
+        if score >= threshold:
             if tmp_start != tmp_end:
                 for i in range(tmp_start+1, tmp_end):
                     bmes_labels[i] = "M-{}".format(ner_cate)

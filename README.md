@@ -113,7 +113,7 @@ For **large** datasets (English OntoNotes 5.0), run the following command and ge
 ## Training BERT MRC-NER Model
 
 You can directly use the following commands to train the **MRC-NER** model with some minor changes.<br>
-`data_sign` should take the value of  `[conll03, zh_msra, zh_onto, en_onto, genia, ace2004, ace2005, kbp17, resume]`. <br> 
+`data_sign` should take the value of  `[conll03, zh_msra, zh_onto, en_onto, genia, ace2004, ace2005, kbp17]`. <br> 
 `entity_sign` should take the value of `[flat, nested]`. <br> 
 
 ```bash 

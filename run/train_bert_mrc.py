@@ -133,9 +133,9 @@ def load_model(config, num_train_steps, label_list):
     {"params": [p for n, p in param_optimizer if not any(nd in n for nd in no_decay)], "weight_decay": 0.01},
     {"params": [p for n, p in param_optimizer if any(nd in n for nd in no_decay)], "weight_decay": 0.0}]
 
-    # optimizer = AdamW(optimizer_grouped_parameters, lr=config.learning_rate, eps=10e-8)
-    optimizer = BertAdam(optimizer_grouped_parameters, lr=config.learning_rate, warmup=config.warmup_proportion,
-                        t_total=num_train_steps, max_grad_norm=config.clip_grad)
+    optimizer = AdamW(optimizer_grouped_parameters, lr=config.learning_rate, betas=(0.9, 0.98), eps=1e-6, weight_decay=0.01)
+    # optimizer = BertAdam(optimizer_grouped_parameters, lr=config.learning_rate, warmup=config.warmup_proportion,
+    #                     t_total=num_train_steps, max_grad_norm=config.clip_grad)
     sheduler = None
 
     if config.fp16:
@@ -179,9 +179,10 @@ def train(model, optimizer, sheduler,  train_dataloader, dev_dataloader, test_da
             lr_linear_decay(optimizer) 
         for step, batch in enumerate(train_dataloader):
             batch = tuple(t.to(device) for t in batch) 
-            input_ids, input_mask, segment_ids, start_pos, end_pos, span_pos, ner_cate = batch 
+            input_ids, input_mask, segment_ids, start_pos, end_pos, span_pos, span_label_mask, ner_cate = batch
+
             loss = model(input_ids, token_type_ids=segment_ids, attention_mask=input_mask, \
-                start_positions=start_pos, end_positions=end_pos, span_positions=span_pos)
+                start_positions=start_pos, end_positions=end_pos, span_positions=span_pos, span_label_mask=span_label_mask)
 
             if config.n_gpu > 1:
                 loss = loss.mean()
@@ -265,17 +266,18 @@ def eval_checkpoint(model_object, eval_dataloader, config, device, n_gpu, label_
     eval_steps = 0
     ner_cate_lst = []
 
-    for input_ids, input_mask, segment_ids, start_pos, end_pos, span_pos, ner_cate in eval_dataloader:
+    for input_ids, input_mask, segment_ids, start_pos, end_pos, span_pos, span_label_mask, ner_cate in eval_dataloader:
         input_ids = input_ids.to(device)
         input_mask = input_mask.to(device)
         segment_ids = segment_ids.to(device)
         start_pos = start_pos.to(device)
         end_pos = end_pos.to(device)
         span_pos = span_pos.to(device)
+        span_label_mask = span_label_mask.to(device)
 
         with torch.no_grad():
             model_object.eval()
-            tmp_eval_loss = model_object(input_ids, segment_ids, input_mask, start_pos, end_pos, span_pos)
+            tmp_eval_loss = model_object(input_ids, segment_ids, input_mask, start_pos, end_pos, span_pos, span_label_mask)
             start_labels, end_labels, span_scores = model_object(input_ids, segment_ids, input_mask)
 
         start_pos = start_pos.to("cpu").numpy().tolist()
