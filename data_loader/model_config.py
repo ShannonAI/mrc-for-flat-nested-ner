@@ -10,7 +10,7 @@
 
 import json 
 import copy 
-
+from collections import OrderedDict
 
 
 class Config(object):
@@ -49,11 +49,13 @@ class Config(object):
         return output 
 
 
-    def print_config(self):
-        model_config = self.to_dict()
-        json_config = json.dumps(model_config, indent=2)
-        print(json_config)
-        return json_config 
+    def print_config(self, logger=None):
+        model_config = OrderedDict(sorted(self.to_dict().items()))
+        logger.info("$$"*40)
+        logger.info("Arg and Model Configs ...")
+        for key, value in model_config.items():
+            logger.info(f"{key} -> {value}")
+        logger.info("$$"*40)
 
 
     def to_json_string(self):

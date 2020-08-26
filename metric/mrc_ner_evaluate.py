@@ -124,7 +124,7 @@ def flat_ner_performance(pred_start, pred_end, pred_span, \
 
             item_pred_bmes_idx, item_gold_bmes_idx, item_pred_bmes_label, item_gold_bmes_label = flat_ner_performance(pred_start_item, pred_end_item, pred_span_item,
                                                                                                                       gold_start_item, gold_end_item, gold_span_item,
-                                                                                                                      ner_cate_item, label_lst, dims=1)
+                                                                                                                      ner_cate_item, label_lst, threshold=threshold, dims=1)
 
             pred_bmes_idx_lst.append(item_pred_bmes_idx)
             gold_bmes_idx_lst.append(item_gold_bmes_idx)

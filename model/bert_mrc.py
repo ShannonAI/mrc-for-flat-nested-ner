@@ -12,29 +12,44 @@ import torch
 import torch.nn as nn
 
 
-from layer.classifier import MultiNonLinearClassifier
-from layer.bert_basic_model import BertModel, BertConfig  
+from layer.classifier import MultiNonLinearClassifier, SingleNonLinearClassifier
+from layer.bert_basic_model import BertModel, BertConfig
 
 
 class BertQueryNER(nn.Module):
-    def __init__(self, config):
+    def __init__(self, config, train_steps=1200000):
         super(BertQueryNER, self).__init__()
         bert_config = BertConfig.from_dict(config.bert_config.to_dict()) 
         self.bert = BertModel(bert_config)
 
-        self.start_outputs = nn.Linear(config.hidden_size, 2)
-        self.end_outputs = nn.Linear(config.hidden_size, 2)
+        self.start_outputs = SingleNonLinearClassifier(config.hidden_size, 2, config.dropout)
+        self.end_outputs = SingleNonLinearClassifier(config.hidden_size, 2, config.dropout)
 
         self.span_embedding = MultiNonLinearClassifier(config.hidden_size*2, 1, config.dropout)
         self.hidden_size = config.hidden_size 
-        self.bert = self.bert.from_pretrained(config.bert_model) 
+        self.bert = self.bert.from_pretrained(config.bert_model)
+        self.train_steps = train_steps
         self.loss_wb = config.weight_start 
         self.loss_we = config.weight_end 
-        self.loss_ws = config.weight_span 
+        self.loss_ws = config.weight_span
 
+    def update_loss_ratio(self, current_train_step=None, decay_step=5000,
+                          lower_bound_weight=0.6, upper_bound_weight=1.5, decay_base=3.0, increase_base=1.5):
+        if current_train_step is None:
+            return
+        if current_train_step > decay_step:
+            loss_wb = self.loss_wb * (decay_base ** -(current_train_step/self.train_steps))
+            loss_we = self.loss_we * (decay_base ** -(current_train_step/self.train_steps))
+            self.loss_wb = loss_wb if loss_wb > lower_bound_weight else lower_bound_weight
+            self.loss_we = loss_we if loss_we > lower_bound_weight else lower_bound_weight
+
+            loss_ws = self.loss_ws * (increase_base ** (current_train_step/self.train_steps))
+            self.loss_ws = loss_ws if loss_ws <= upper_bound_weight else upper_bound_weight
+            if current_train_step % 1000 == 0:
+                print(f"*** *** *** >>> update loss weight: {self.loss_wb}, {self.loss_we}, {self.loss_ws}")
 
     def forward(self, input_ids, token_type_ids=None, attention_mask=None, 
-        start_positions=None, end_positions=None, span_positions=None, span_label_mask=None):
+        start_positions=None, end_positions=None, span_positions=None, span_label_mask=None, current_step=None):
         """
         Args:
             start_positions: (batch x max_len x 1)
@@ -63,9 +78,10 @@ class BertQueryNER(nn.Module):
         span_matrix = torch.cat([start_extend, end_extend], 3) # batch x seq_len x seq_len x 2*hidden
 
         span_logits = self.span_embedding(span_matrix)  # batch x seq_len x seq_len x 1 
-        span_logits = torch.squeeze(span_logits)  # batch x seq_len x seq_len 
+        span_logits = torch.squeeze(span_logits)  # batch x seq_len x seq_len
 
         if start_positions is not None and end_positions is not None:
+            # self.update_loss_ratio(current_train_step=current_step)
             valid_num = torch.sum(token_type_ids)
             loss_fct = nn.CrossEntropyLoss(reduction="none")
             start_loss = loss_fct(start_logits.view(-1, 2), start_positions.view(-1))
@@ -86,4 +102,3 @@ class BertQueryNER(nn.Module):
             start_labels = torch.argmax(start_logits, dim=-1)
             end_labels = torch.argmax(end_logits, dim=-1)
             return start_labels, end_labels, span_scores
-

@@ -8,4 +8,5 @@ typing
 pathlib
 boto3
 pathos
+tensorboardX
 pytorch-pretrained-bert==0.6.1

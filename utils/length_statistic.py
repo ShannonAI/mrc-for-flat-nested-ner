@@ -77,7 +77,7 @@ def tokenize_input_sequence_to_subtokens(examples, tokenizer, clip_length):
         len_of_queries.append(len(query_subtokens))
         len_of_contexts.append(len(context_subtokens_lst))
         len_of_inputs.append(len(query_subtokens)+len(context_subtokens_lst)+3)
-        if len(context_subtokens_lst) >= clip_length:
+        if len(context_subtokens_lst) + len(query_subtokens) >= clip_length:
             oob_counter += 1
 
     summary_of_inputs["max_query"] = max(len_of_queries)

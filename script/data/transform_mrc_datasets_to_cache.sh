@@ -6,7 +6,7 @@
 # description:
 # transform mrc-ner datasets to binary files
 
-REPO_PATH=/data/xiaoya/work/mrc-for-flat-nested-ner
+REPO_PATH=/home/lixiaoya/mrc-for-flat-nested-ner
 export PYTHONPATH="$PYTHONPATH:$REPO_PATH"
 
 

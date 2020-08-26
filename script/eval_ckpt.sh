@@ -2,10 +2,7 @@
 # -*- coding: utf-8 -*- 
 
 
-
-# Author: Xiaoy LI 
-# first create: 2020.05.05 
-# last update: 2020.05.05 
+# Author: Xiaoy LI
 # description:
 # evaluate checkpoint 
 
