@@ -7,6 +7,10 @@ sftp-config.json
 
 .DS_Store
 
+backup
+
+*.idea
+
 script/xiaoy
 
 *.py.swp

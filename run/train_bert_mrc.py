@@ -62,21 +62,25 @@ def args_parser():
     parser.add_argument("--optimizer_type", default="adamw", type=str,)
     parser.add_argument("--lr_scheduler_type", default="polynomial_warmup", type=str)
     parser.add_argument("--learning_rate", default=5e-5, type=float)
+    parser.add_argument("--lr_min", default=5e-6, type=float, help="minimal learning rate for lr scheduler.")
     parser.add_argument("--num_train_epochs", default=5, type=int)
     parser.add_argument("--warmup_steps", default=1000, type=float)
     parser.add_argument("--weight_decay", default=0.001, type=float)
     parser.add_argument("--adam_epsilon", default=1e-8, type=float)
     parser.add_argument("--max_grad_norm", default=1.0, type=float, help="Max gradient norm.")
     parser.add_argument("--gradient_accumulation_steps", type=float, default=1)
+    parser.add_argument("--data_parallel", default="dp", type=str, help="dp -> data parallel for multi GPU cards; ddp -> distributed data parallel for multiple GPU card.")
 
     parser.add_argument("--weight_start", type=float, default=1.0)
     parser.add_argument("--weight_end", type=float, default=1.0)
     parser.add_argument("--weight_span", type=float, default=1.0)
     parser.add_argument("--entity_threshold", type=float, default=0.5)
+    parser.add_argument("--loss_type", default="ce", type=str, help="ce, wce, dynamic_wce, dice, focal, dsc. ")
 
     parser.add_argument('--fp16', default=False, action='store_true', help="Whether to use MIX 16-bit float precision instead of 32-bit")
     parser.add_argument("--amp_level", default="O2", type=str, help="For fp16: Apex AMP optimization level selected in ['O0', 'O1', 'O2', and 'O3'].See details at https://nvidia.github.io/apex/amp.html")
     parser.add_argument("--local_rank", type=int, default=-1, help="local_rank for distributed training on gpus")
+    parser.add_argument("--entity_scheme", type=str, default="bes", help="bes -> begin+end+span; BMES -> ")
 
     parser.add_argument("--seed", type=int, default=3006)
     parser.add_argument("--only_eval_dev", default=False, action="store_true", help="only evaluate on dev set. ")
@@ -127,7 +131,8 @@ def load_data(config, logger):
     label_list = data_processor.get_labels()
     tokenizer = BertTokenizer4Tagger.from_pretrained(config.bert_model, do_lower_case=config.do_lower_case)
 
-    dataset_loaders = MRCNERDataLoader(config, data_processor, label_list, tokenizer, mode="train", allow_impossible=True)
+    dataset_loaders = MRCNERDataLoader(config, data_processor, label_list,
+                                       tokenizer, mode="train", allow_impossible=True, ) # entity_scheme=config.entity_scheme)
     if config.debug:
         logger.info("%="*20)
         logger.info("="*10 + " DEBUG MODE " + "="*10)
@@ -136,13 +141,20 @@ def load_data(config, logger):
         train_dataloader = dataset_loaders.get_dataloader(data_sign="train", num_data_processor=config.num_data_processor, logger=logger)
     dev_dataloader = dataset_loaders.get_dataloader(data_sign="dev", num_data_processor=config.num_data_processor, logger=logger)
     test_dataloader = dataset_loaders.get_dataloader(data_sign="test", num_data_processor=config.num_data_processor, logger=logger)
-    num_train_steps = dataset_loaders.get_num_train_epochs()
+    train_instances = dataset_loaders.get_train_instance()
+    num_train_steps = len(train_dataloader) // config.gradient_accumulation_steps * config.num_train_epochs
+    per_gpu_train_batch_size = config.train_batch_size // config.n_gpu
+
+    logger.info("****** Running Training ******")
+    logger.info(f"Number of Training Data: {train_instances}")
+    logger.info(f"Train Epoch {config.num_train_epochs}; Total Train Steps: {num_train_steps}; Warmup Train Steps: {config.warmup_steps}")
+    logger.info(f"Per GPU Train Batch Size: {per_gpu_train_batch_size}")
 
     return train_dataloader, dev_dataloader, test_dataloader, num_train_steps, label_list 
 
 
 
-def load_model(config, num_train_steps, label_list):
+def load_model(config, num_train_steps, label_list, logger):
     device = torch.device("cuda") 
     n_gpu = config.n_gpu
     model = BertQueryNER(config, train_steps=num_train_steps)
@@ -169,7 +181,7 @@ def load_model(config, num_train_steps, label_list):
         model, optimizer = amp.initialize(model, optimizer, opt_level=config.amp_level)
 
     # Distributed training (should be after apex fp16 initialization)
-    if config.local_rank != -1:
+    if config.local_rank != -1 && config.data_parallel == "ddp":
         model = torch.nn.parallel.DistributedDataParallel(
             model, device_ids=[config.local_rank], output_device=config.local_rank, find_unused_parameters=True
             )
@@ -221,6 +233,8 @@ def train(model, optimizer, scheduler,  train_dataloader, dev_dataloader, test_d
                 loss = loss.mean()
 
             if config.gradient_accumulation_steps > 1:
+                if config.debug:
+                    print("DEBUG MODE: GRAD ACCUMULATION 1 STEP . ")
                 loss = loss / config.gradient_accumulation_steps
 
             if config.fp16:
@@ -230,6 +244,9 @@ def train(model, optimizer, scheduler,  train_dataloader, dev_dataloader, test_d
                 loss.backward()
 
             if (step + 1) % config.gradient_accumulation_steps == 0:
+                if config.debug:
+                    print("DEBUG MODE: BACK PROPAGATION 1 STEP .")
+
                 if config.fp16:
                     torch.nn.utils.clip_grad_norm_(amp.master_params(optimizer), config.max_grad_norm)
                 else:
@@ -401,7 +418,7 @@ def main():
     logger = logger_to_file(path_to_logfile)
     config = merge_config(args_config, logger=logger)
     train_loader, dev_loader, test_loader, num_train_steps, label_list = load_data(config, logger)
-    model, optimizer, scheduler, device, n_gpu = load_model(config, num_train_steps, label_list)
+    model, optimizer, scheduler, device, n_gpu = load_model(config, num_train_steps, label_list, logger)
     train(model, optimizer, scheduler, train_loader, dev_loader, test_loader, config, device, n_gpu, label_list, logger)
     
 
