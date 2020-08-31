@@ -56,7 +56,6 @@ Evaluations are conducted on the widely-used bechmarks: `CoNLL2003`, `OntoNotes 
 | Our method |  **91.11** | **95.75** | **82.11** | 
 |  |  **(+1.95)** | **(+0.21)** | **(+0.48)** | 
 
-
 ### Nested NER Datasets
 Evaluations are conducted on the widely-used `ACE 2004`, `ACE 2005`, `GENIA`, `KBP-2017` English datasets.
 
@@ -84,8 +83,12 @@ Previous SOTA:
 	`<model_name>` should take the value of `[en_bert_cl, en_bert_wwm_cl, zh_bert]`.
 
 	- Run the following command and transform the checkpoints from tensorflow (.ckpt) to pytorch (.bin). <br>
+
 **NOTICE**: need to install `tensorflow-gpu==1.15`
-`bash ./script/data/convert_checkpoints_from_tf_to_pytorch.sh <model_sign> <dir_to_bert_model> `<br> 
+
+```
+bash ./script/data/convert_checkpoints_from_tf_to_pytorch.sh <model_sign> <dir_to_bert_model> ```<br> 
+
 `<model_sign>` should take the value of `[zh_bert, en_bert_cased_large, en_bert_wwm_cased_large]`. 
 
 - For faster training, install NVIDIA's [Apex](https://github.com/NVIDIA/apex) library:
@@ -96,7 +99,10 @@ cd apex
 pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" \
   --global-option="--deprecated_fused_adam" --global-option="--xentropy" \
   --global-option="--fast_multihead_attn" ./
-```
+``` 
+**NOTICE**: The program stops running and raises a `StopIteration ERROR` exception if you want to train the model on Multi-gpu with `torch==1.5.x`.
+The solution is to increase the values of `--gradient_accumulation_steps` and `--train_batch_size`. 
+Please refer the [link](https://github.com/amdegroot/ssd.pytorch/issues/214) for more details.
 
 ## Data Preprocess 
 
