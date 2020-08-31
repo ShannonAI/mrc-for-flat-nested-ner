@@ -131,16 +131,5 @@ class BertQueryNER(nn.Module):
             s_loss = s_factor * span_loss + self._span_loss_sig
             total_loss = b_loss + e_loss + s_loss
             return total_loss
-        elif loss_type == "average_dynamic_wce":
-            b_factor = torch.exp(- self._start_loss_sig)
-            b_loss = b_factor * start_loss + self._start_loss_sig * 0.3
-
-            e_factor = torch.exp(- self._end_loss_sig)
-            e_loss = e_factor * end_loss + self._end_loss_sig * 0.3
-
-            s_factor = torch.exp(- self._span_loss_sig)
-            s_loss = s_factor * span_loss + self._span_loss_sig * 0.3
-            total_loss = b_loss + e_loss + s_loss
-            return total_loss
         else:
             raise ValueError("Loss Type doesnot exists. ")

@@ -8,6 +8,7 @@
 # 
 
 
+import torch
 import torch.nn as nn 
 import torch.nn.functional as F
 
@@ -54,8 +55,31 @@ class MultiNonLinearClassifier(nn.Module):
         return features_output2 
 
 
+class BiaffineClassifier(nn.Module):
+    def __init__(self, feature1_size, feature2_size, convert_feature_size, output_feature_size, output_size, ):
+        super(BiaffineClassifier, self).__init__()
 
+        self.feature1_size = feature1_size
+        self.feature2_size = feature2_size
+        self.input_feature1 = nn.Linear(feature1_size, convert_feature_size)
+        self.input_feature2 = nn.Linear(feature2_size, convert_feature_size)
+        self.affine_feature_size = convert_feature_size
+        self.output_feature_size = output_feature_size
+        self.linear = nn.Linear(convert_feature_size, convert_feature_size * output_feature_size)
+        self.map_to_logits = nn.Linear(output_feature_size, output_size)
 
+    def forward(self, input):
+        seq_len = input.size()[1]
+        feature1_seq = nn.ReLU()(self.input_feature1(input))
+        feature2_seq = nn.ReLU()(self.input_feature2(input))
+        batch_size = input.size()[0]
+        affine = self.linear(feature1_seq) # batch_size, sequence_len,
+        affine = affine.view(batch_size, -1, self.affine_feature_size)
+        input2 = torch.transpose(feature2_seq, 1, 2)
+        biaffine = torch.transpose(torch.bmm(affine, input2), 1, 2)
+        biaffine = biaffine.contiguous().view(batch_size, seq_len, seq_len, self.output_feature_size)
+        logits = self.map_to_logits(biaffine)
+        return logits
 
 
 

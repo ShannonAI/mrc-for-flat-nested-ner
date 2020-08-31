@@ -7,6 +7,7 @@
 # PyTorch optimization for BERT model.
 
 
+import torch
 import math
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import LambdaLR
@@ -26,6 +27,15 @@ def build_lr_scheduler(config, optimizer, total_train_step):
         scheduler = get_constant_schedule_with_warmup(optimizer, config.warmup_steps)
     elif lr_scheduler_type == "linear_warmup":
         scheduler = get_linear_schedule_with_warmup(optimizer, config.warmup_steps, total_train_step)
+    elif lr_scheduler_type == "one_cycle":
+        step_per_epoch = int(total_train_step // config.num_train_epochs)
+        scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=config.lr_max,
+                                                        total_steps=total_train_step,
+                                                        epochs=config.num_train_epochs,
+                                                        steps_per_epoch=step_per_epoch,)
+    elif lr_scheduler_type == "ladder":
+        step_per_epoch = int(total_train_step // config.num_train_epochs)
+        scheduler = get_ladder_schedule(optimizer, step_per_epoch, config.lr_min, )
     else:
         raise ValueError("Please  LR scheduler type. ")
 
@@ -44,6 +54,34 @@ def get_constant_schedule(optimizer: Optimizer, last_epoch: int = -1):
         :obj:`torch.optim.lr_scheduler.LambdaLR` with the appropriate schedule.
     """
     return LambdaLR(optimizer, lambda _: 1, last_epoch=last_epoch)
+
+
+def get_ladder_schedule(optimizer: Optimizer,
+                        update_per_step: int,
+                        lr_min: float,
+                        decay_ratio: float = 0.95,
+                        last_epoch: int = -1):
+    """
+    Create a schedule with a ladder learning rate.
+    Args:
+        optimizer (:class:`~torch.optim.Optimizer`):
+            The optimizer for which to schedule the learning rate.
+        num_warmup_steps (:obj:`int`):
+            The number of steps for the warmup phase.
+        last_epoch (:obj:`int`, `optional`, defaults to -1):
+            The index of the last epoch when resuming training.
+    Return:
+        :obj:`torch.optim.lr_scheduler.LambdaLR` with the appropriate schedule.
+    """
+
+    def lr_lambda(current_step: int):
+        if current_step < update_per_step:
+            return 1.0
+        else:
+            factor = math.floor(current_step / update_per_step)
+            return float(decay_ratio ** factor)
+
+    return LambdaLR(optimizer, lr_lambda, last_epoch=last_epoch)
 
 
 def get_constant_schedule_with_warmup(optimizer: Optimizer, num_warmup_steps: int, last_epoch: int = -1):

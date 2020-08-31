@@ -63,6 +63,7 @@ def args_parser():
     parser.add_argument("--lr_scheduler_type", default="polynomial_warmup", type=str)
     parser.add_argument("--learning_rate", default=5e-5, type=float)
     parser.add_argument("--lr_min", default=5e-6, type=float, help="minimal learning rate for lr scheduler.")
+    parser.add_argument("--lr_max", default=5e-5, type=float, help="max learning rate for lr scheduler. ")
     parser.add_argument("--num_train_epochs", default=5, type=int)
     parser.add_argument("--warmup_steps", default=1000, type=float)
     parser.add_argument("--weight_decay", default=0.001, type=float)
@@ -74,7 +75,7 @@ def args_parser():
     parser.add_argument("--weight_start", type=float, default=1.0)
     parser.add_argument("--weight_end", type=float, default=1.0)
     parser.add_argument("--weight_span", type=float, default=1.0)
-    parser.add_argument("--entity_threshold", type=float, default=0.5)
+    parser.add_argument("--entity_threshold", type=float, default=0)
     parser.add_argument("--loss_type", default="ce", type=str, help="ce, wce, dynamic_wce, dice, focal, dsc. ")
 
     parser.add_argument('--fp16', default=False, action='store_true', help="Whether to use MIX 16-bit float precision instead of 32-bit")

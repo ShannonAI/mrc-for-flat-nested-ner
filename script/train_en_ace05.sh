@@ -3,37 +3,37 @@
 
 
 # author: xiaoy li
-# file: train_zh_onto.sh
+# file: train_en_ace05.sh
 # device: 16G P100
 
 
 REPO_PATH=/home/lixiaoya/mrc-for-flat-nested-ner
 export PYTHONPATH="$PYTHONPATH:$REPO_PATH"
-FILE_NAME=train_zh_onto
+FILE_NAME=train_en_ace05
 
 # data configuration
-DATA_SIGN=zh_onto
+DATA_SIGN=ace2005
 # conll03, zh_msra, zh_onto, en_onto, genia, ace2004, ace2005
 MODEL_SIGN=mrc-ner
-ENTITY_SIGN=flat
+ENTITY_SIGN=nested
 NUM_DATA_PROCESSOR=1
 
 
 # model params
-MAX_LEN=260
+MAX_LEN=160
 DP=0.1
-TRAIN_BZ=12
-DEV_BZ=12
-TEST_BZ=12
-N_GPU=1
+TRAIN_BZ=32
+DEV_BZ=16
+TEST_BZ=16
+N_GPU=2
 
 
 # training
 OPTIM_TYPE=adamw
-LR_SCHEDULER=ladder
+LR_SCHEDULER=constant
 LR=1e-5
 LR_MIN=8e-6
-NUM_EPOCH=6
+NUM_EPOCH=8
 WARMUP_STEP=500
 WEIGHT_DECAY=0.01
 GRAD_NORM=1.0
@@ -45,15 +45,16 @@ LOSS_TYPE=ce
 START_LRATIO=1.0
 END_LRATIO=1.0
 SPAN_LRATIO=1.0
+ENTITY_THRESHOLD=0.15
 
 
 SEED=2333
 DATA_BASE_DIR=/data
 LOG_FILE=log.txt
-DATA_PATH=${DATA_BASE_DIR}/mrc_ner_data/zh_onto4
-BERT_PATH=${DATA_BASE_DIR}/pretrain_ckpt/chinese_L-12_H-768_A-12
+DATA_PATH=${DATA_BASE_DIR}/mrc_ner_data/en_ace2005
+BERT_PATH=${DATA_BASE_DIR}/pretrain_ckpt/cased_L-24_H-1024_A-16
 EXPORT_DIR=${DATA_BASE_DIR}/output_mrc_ner
-CONFIG_PATH=${REPO_PATH}/config/zh_bert.json
+CONFIG_PATH=${REPO_PATH}/config/en_bert_large_cased.json
 OUTPUT_PATH=${DATA_BASE_DIR}/output_mrc_ner/${DATA_SIGN}_${MAX_LEN}_${LR}_${TRAIN_BZ}_${DP}_${FILE_NAME}
 
 
@@ -61,7 +62,7 @@ rm -rf ${output_path}
 mkdir -p ${output_path}
 
 
-CUDA_VISIBLE_DEVICES=0 nohup python3 $REPO_PATH/run/train_bert_mrc.py \
+CUDA_VISIBLE_DEVICES=1 nohup python3 $REPO_PATH/run/train_bert_mrc.py \
 --optimizer_type $OPTIM_TYPE \
 --lr_scheduler_type $LR_SCHEDULER \
 --lr_min $LR_MIN \
@@ -87,6 +88,7 @@ CUDA_VISIBLE_DEVICES=0 nohup python3 $REPO_PATH/run/train_bert_mrc.py \
 --weight_start $START_LRATIO \
 --weight_end $END_LRATIO \
 --weight_span $SPAN_LRATIO \
+--entity_threshold $ENTITY_THRESHOLD \
 --num_train_epochs $NUM_EPOCH \
 --seed $SEED \
 --warmup_steps $WARMUP_STEP \
