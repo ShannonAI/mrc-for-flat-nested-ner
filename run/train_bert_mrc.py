@@ -181,7 +181,7 @@ def load_model(config, num_train_steps, label_list, logger):
         model, optimizer = amp.initialize(model, optimizer, opt_level=config.amp_level)
 
     # Distributed training (should be after apex fp16 initialization)
-    if config.local_rank != -1 && config.data_parallel == "ddp":
+    if config.local_rank != -1 and config.data_parallel == "ddp":
         model = torch.nn.parallel.DistributedDataParallel(
             model, device_ids=[config.local_rank], output_device=config.local_rank, find_unused_parameters=True
             )

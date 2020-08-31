@@ -24,7 +24,7 @@ class MRCNERDataLoader(object):
         self.data_dir = config.data_dir
         self.max_seq_length= config.max_seq_length
         self.entity_scheme = entity_scheme
-        self.distributed_data_sampler = config.n_gpu > 1 && config.data_parallel == "ddp"
+        self.distributed_data_sampler = config.n_gpu > 1 and config.data_parallel == "ddp"
 
         if mode == "train":
             self.train_batch_size = config.train_batch_size
