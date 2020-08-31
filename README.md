@@ -86,8 +86,7 @@ Previous SOTA:
 
 **NOTICE**: need to install `tensorflow-gpu==1.15`
 
-`
-bash ./script/data/convert_checkpoints_from_tf_to_pytorch.sh <model_sign> <dir_to_bert_model> ```<br> 
+`bash ./script/data/convert_checkpoints_from_tf_to_pytorch.sh <model_sign> <dir_to_bert_model> <br> 
 
 `<model_sign>` should take the value of `[zh_bert, en_bert_cased_large, en_bert_wwm_cased_large]`. 
 
