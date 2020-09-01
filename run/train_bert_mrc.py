@@ -262,7 +262,7 @@ def train(model, optimizer, scheduler,  train_dataloader, dev_dataloader, test_d
             nb_tr_examples += input_ids.size(0)
             nb_tr_steps += 1 
 
-            if nb_tr_steps % config.checkpoint == 0:
+            if global_step % config.checkpoint == 0:
                 logger.info("-*-"*15)
                 logger.info("current training loss is : ")
                 logger.info(f"{loss.item()}")
