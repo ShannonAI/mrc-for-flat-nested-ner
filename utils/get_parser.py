@@ -7,7 +7,6 @@
 @file: get_parser
 @time: 2020/7/9 15:48
 
-    这一行开始写关于本文件的说明与解释
 """
 
 import argparse

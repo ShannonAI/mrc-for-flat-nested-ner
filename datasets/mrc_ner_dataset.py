@@ -59,44 +59,53 @@ class MRCNERDataset(Dataset):
         start_positions = data["start_position"]
         end_positions = data["end_position"]
         # add space offsets  todo(yuxian): 英文数据集不符合这个规则
-        start_positions = [x*2 for x in start_positions]
-        end_positions = [x*2 for x in end_positions]
+        words = context.split()
+        start_positions = [x + sum([len(w) for w in words[:x]]) for x in start_positions]
+        end_positions = [x + sum([len(w) for w in words[:x + 1]]) for x in end_positions]
 
         # todo(yuxian): 看看是不是会有更好的截断方法
         query_context_tokens = tokenizer.encode(query, context, add_special_tokens=True)
-        tokens = query_context_tokens.ids[: self.max_length]
-        type_ids = query_context_tokens.type_ids[: self.max_length]
-        offsets = query_context_tokens.offsets[: self.max_length]
+        tokens = query_context_tokens.ids
+        type_ids = query_context_tokens.type_ids
+        offsets = query_context_tokens.offsets
+
         # find new start_positions/end_positions, considering
         # 1. we add query tokens at the beginning
         # 2. word-piece tokenize
-        new_start_positions = []
-        new_end_positions = []
-        label_mask = []
+        origin_offset2token_idx_start = {}
+        origin_offset2token_idx_end = {}
         for token_idx in range(len(tokens)):
-            token_type = type_ids[token_idx]
             # skip query tokens
-            if token_type == 0:
-                label_mask.append(0)
+            if type_ids[token_idx] == 0:
                 continue
             token_start, token_end = offsets[token_idx]
             # skip [CLS] or [SEP]
             if token_start == token_end == 0:
-                label_mask.append(0)
                 continue
-            if token_start in start_positions:
-                new_start_positions.append(token_idx)
-            if token_end - 1 in end_positions:
-                new_end_positions.append(token_idx)
-            label_mask.append(1)
+            origin_offset2token_idx_start[token_start] = token_idx
+            origin_offset2token_idx_end[token_end] = token_idx
 
-        assert (len(new_start_positions) == len(new_end_positions) == len(start_positions)
-                or len(query_context_tokens) > self.max_length)
+        new_start_positions = [origin_offset2token_idx_start[start] for start in start_positions]
+        new_end_positions = [origin_offset2token_idx_end[end] for end in end_positions]
+
+        label_mask = [
+            (0 if type_ids[token_idx] == 0 or offsets[token_idx] == (0, 0) else 1)
+            for token_idx in range(len(tokens))
+        ]
+
+        assert len(new_start_positions) == len(new_end_positions) == len(start_positions)
         assert len(label_mask) == len(tokens)
         start_labels = [(1 if idx in new_start_positions else 0)
                         for idx in range(len(tokens))]
         end_labels = [(1 if idx in new_end_positions else 0)
                       for idx in range(len(tokens))]
+
+        # truncate
+        tokens = tokens[: self.max_length]
+        type_ids = type_ids[: self.max_length]
+        start_labels = start_labels[: self.max_length]
+        end_labels = end_labels[: self.max_length]
+
         match_labels = torch.zeros([self.max_length, self.max_length], dtype=torch.long)
         for start, end in zip(new_start_positions, new_end_positions):
             match_labels[start, end] = 1
@@ -120,15 +129,18 @@ class MRCNERDataset(Dataset):
 def run_dataset():
     """test dataset"""
     import os
-    json_path = "/data/yuxian/mrc/zh_msra/mrc-ner.dev"
-    bert_path = "/data/yuxian/mrc/chinese_L-12_H-768_A-12"
+    # zh datasets
+    # bert_path = "/mnt/mrc/chinese_L-12_H-768_A-12"
+    # json_path = "/mnt/mrc/zh_msra/mrc-ner.dev"
+
+    # en datasets
+    bert_path = "/mnt/mrc/bert-base-uncased"
+    json_path = "/mnt/mrc/ace2004/mrc-ner.dev"
+
     vocab_file = os.path.join(bert_path, "vocab.txt")
     tokenizer = BertWordPieceTokenizer(vocab_file=vocab_file)
     dataset = MRCNERDataset(json_path=json_path, tokenizer=tokenizer)
-    # for d in dataset:
-        # tokens = d["tokens"].tolist()
-        # start_positions = d["start_positions"].tolist()
-        # end_positions = d["end_positions"].tolist()
+
     for tokens, token_type_ids, start_labels, end_labels, label_mask, match_labels in dataset:
         tokens = tokens.tolist()
         start_positions, end_positions = torch.where(match_labels > 0)
