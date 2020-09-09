@@ -68,11 +68,14 @@ class BertLabeling(pl.LightningModule):
         self.ce_loss = CrossEntropyLoss(reduction="none")
         self.bce_loss = BCEWithLogitsLoss(reduction="none")
         # todo(yuxian): 由于match loss是n^2的，应该特殊调整一下loss rate
-        self.loss_wb = args.weight_start
-        self.loss_we = args.weight_end
-        self.loss_ws = args.weight_span
+        weight_sum = args.weight_start + args.weight_end + args.weight_span
+        self.loss_wb = args.weight_start / weight_sum
+        self.loss_we = args.weight_end / weight_sum
+        self.loss_ws = args.weight_span / weight_sum
         self.flat_ner = args.flat
+        self.hard_span_only = args.hard_span_only
         self.span_f1 = QuerySpanF1(flat=self.flat_ner)
+        self.chinese = args.chinese
 
     @staticmethod
     def add_model_specific_args(parent_parser):
@@ -85,6 +88,10 @@ class BertLabeling(pl.LightningModule):
         parser.add_argument("--weight_end", type=float, default=1.0)
         parser.add_argument("--weight_span", type=float, default=1.0)
         parser.add_argument("--flat", action="store_true", help="is flat ner")
+        parser.add_argument("--hard_span_only", action="store_true",
+                            help="use golden/pred start/end to compute span loss")
+        parser.add_argument("--chinese", action="store_true",
+                            help="is chinese dataset")
 
         return parser
 
@@ -122,11 +129,26 @@ class BertLabeling(pl.LightningModule):
         batch_size, seq_len, _ = start_logits.size()
         float_label_mask = label_mask.float().view(-1)
 
-        match_label_row_mask = label_mask.bool().unsqueeze(-1).repeat([1, 1, seq_len])
-        match_label_col_mask = label_mask.bool().unsqueeze(-2).repeat([1, seq_len, 1])
+        match_label_row_mask = label_mask.bool().unsqueeze(-1).expand(-1, -1, seq_len)
+        match_label_col_mask = label_mask.bool().unsqueeze(-2).expand(-1, seq_len, -1)
         match_label_mask = match_label_row_mask & match_label_col_mask
         match_label_mask = torch.triu(match_label_mask, 0)  # start should be greater equal to end
-        float_match_label_mask = match_label_mask.view(batch_size, -1).float()
+
+        if not self.hard_span_only:
+            # naive mask
+            float_match_label_mask = match_label_mask.view(batch_size, -1).float()
+        else:
+            # use only pred or golden start/end to compute match loss
+            start_preds = torch.argmax(start_logits, dim=2).bool()
+            end_preds = torch.argmax(end_logits, dim=2).bool()
+            match_candidates = torch.logical_or(
+                (start_preds.unsqueeze(-1).expand(-1, -1, seq_len)
+                 & end_preds.unsqueeze(-2).expand(-1, seq_len, -1)),
+                (start_labels.unsqueeze(-1).expand(-1, -1, seq_len)
+                 & end_labels.unsqueeze(-2).expand(-1, seq_len, -1))
+            )
+            match_label_mask = match_label_mask & match_candidates
+            float_match_label_mask = match_label_mask.view(batch_size, -1).float()
 
         start_loss = self.ce_loss(start_logits.view(-1, 2), start_labels.view(-1))
         start_loss = (start_loss * float_label_mask).sum() / float_label_mask.sum()
@@ -134,7 +156,7 @@ class BertLabeling(pl.LightningModule):
         end_loss = (end_loss * float_label_mask).sum() / float_label_mask.sum()
         match_loss = self.bce_loss(span_logits.view(batch_size, -1), match_labels.view(batch_size, -1).float())
         match_loss = match_loss * float_match_label_mask
-        match_loss = match_loss.sum() / float_match_label_mask.sum()
+        match_loss = match_loss.sum() / (float_match_label_mask.sum() + 1e-10)
         # # [batch_size, seq_len**2]
         # sorted_ohem_loss, max_idxs = torch.sort(match_loss, descending=True)
         # # [batch_size]
@@ -172,7 +194,7 @@ class BertLabeling(pl.LightningModule):
         return {'loss': total_loss, 'log': tf_board_logs}
 
     def validation_step(self, batch, batch_idx):
-        """todo(yuxian): add span f1"""
+        """"""
 
         output = {}
 
@@ -239,6 +261,7 @@ class BertLabeling(pl.LightningModule):
 
     def test_dataloader(self):
         return self.get_dataloader("test")
+        # return self.get_dataloader("dev")
 
     def get_dataloader(self, prefix="train", limit: int = None) -> DataLoader:
         """get training dataloader"""
@@ -250,6 +273,7 @@ class BertLabeling(pl.LightningModule):
         dataset = MRCNERDataset(json_path=json_path,
                                 tokenizer=BertWordPieceTokenizer(vocab_file=vocab_path),
                                 max_length=self.args.max_length,
+                                is_chinese=self.chinese
                                 )
 
 

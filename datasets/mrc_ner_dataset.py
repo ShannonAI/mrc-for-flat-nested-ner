@@ -24,11 +24,20 @@ class MRCNERDataset(Dataset):
         json_path: path to mrc-ner style json
         tokenizer: BertTokenizer
         max_length: int, max length of query+context
+        possible_only: if True, only use possible samples that contain answer for the query/context
+        is_chinese: is chinese dataset
     """
-    def __init__(self, json_path, tokenizer: BertWordPieceTokenizer, max_length: int = 128):
+    def __init__(self, json_path, tokenizer: BertWordPieceTokenizer, max_length: int = 128, possible_only=False,
+                 is_chinese=False):
         self.all_data = json.load(open(json_path))
         self.tokenzier = tokenizer
         self.max_length = max_length
+        self.possible_only = possible_only
+        if self.possible_only:
+            self.all_data = [
+                x for x in self.all_data if x["start_position"]
+            ]
+        self.is_chinese = is_chinese
 
     def __len__(self):
         return len(self.all_data)
@@ -58,10 +67,15 @@ class MRCNERDataset(Dataset):
         context = data["context"]
         start_positions = data["start_position"]
         end_positions = data["end_position"]
-        # add space offsets  todo(yuxian): 英文数据集不符合这个规则
-        words = context.split()
-        start_positions = [x + sum([len(w) for w in words[:x]]) for x in start_positions]
-        end_positions = [x + sum([len(w) for w in words[:x + 1]]) for x in end_positions]
+
+        if self.is_chinese:
+            context = "".join(context.split())
+            end_positions = [x+1 for x in end_positions]
+        else:
+            # add space offsets
+            words = context.split()
+            start_positions = [x + sum([len(w) for w in words[:x]]) for x in start_positions]
+            end_positions = [x + sum([len(w) for w in words[:x + 1]]) for x in end_positions]
 
         # todo(yuxian): 看看是不是会有更好的截断方法
         query_context_tokens = tokenizer.encode(query, context, add_special_tokens=True)
@@ -105,6 +119,8 @@ class MRCNERDataset(Dataset):
         type_ids = type_ids[: self.max_length]
         start_labels = start_labels[: self.max_length]
         end_labels = end_labels[: self.max_length]
+        label_mask = label_mask[: self.max_length]
+        # label_mask = label_mask[: self.max_length - 10] + [0] * 10  # do not count int borderline cases.
 
         match_labels = torch.zeros([self.max_length, self.max_length], dtype=torch.long)
         for start, end in zip(new_start_positions, new_end_positions):
@@ -132,16 +148,20 @@ def run_dataset():
     """test dataset"""
     import os
     # zh datasets
-    # bert_path = "/mnt/mrc/chinese_L-12_H-768_A-12"
+    bert_path = "/mnt/mrc/chinese_L-12_H-768_A-12"
     # json_path = "/mnt/mrc/zh_msra/mrc-ner.dev"
+    json_path = "/mnt/mrc/zh_onto4/mrc-ner.train"
+    is_chinese = True
 
     # en datasets
-    bert_path = "/mnt/mrc/bert-base-uncased"
-    json_path = "/mnt/mrc/ace2004/mrc-ner.train"
+    # bert_path = "/mnt/mrc/bert-base-uncased"
+    # json_path = "/mnt/mrc/ace2004/mrc-ner.train"
+    # is_chinese=False
 
     vocab_file = os.path.join(bert_path, "vocab.txt")
     tokenizer = BertWordPieceTokenizer(vocab_file=vocab_file)
-    dataset = MRCNERDataset(json_path=json_path, tokenizer=tokenizer)
+    dataset = MRCNERDataset(json_path=json_path, tokenizer=tokenizer,
+                            is_chinese=is_chinese)
 
     for tokens, token_type_ids, start_labels, end_labels, label_mask, match_labels in dataset:
         tokens = tokens.tolist()
