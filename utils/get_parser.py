@@ -25,7 +25,7 @@ def get_parser() -> argparse.ArgumentParser:
     parser.add_argument("--batch_size", type=int, default=32, help="batch size")
     parser.add_argument("--lr", type=float, default=2e-5, help="learning rate")
     parser.add_argument("--workers", type=int, default=0, help="num workers for dataloader")
-    parser.add_argument("--weight_decay", default=0.0, type=float,
+    parser.add_argument("--weight_decay", default=0.01, type=float,
                         help="Weight decay if we apply some.")
     parser.add_argument("--warmup_steps", default=0, type=int,
                         help="warmup steps used for scheduler.")

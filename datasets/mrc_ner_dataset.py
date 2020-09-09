@@ -108,6 +108,8 @@ class MRCNERDataset(Dataset):
 
         match_labels = torch.zeros([self.max_length, self.max_length], dtype=torch.long)
         for start, end in zip(new_start_positions, new_end_positions):
+            if start >= self.max_length or end >= self.max_length:
+                continue
             match_labels[start, end] = 1
 
         return [
@@ -135,7 +137,7 @@ def run_dataset():
 
     # en datasets
     bert_path = "/mnt/mrc/bert-base-uncased"
-    json_path = "/mnt/mrc/ace2004/mrc-ner.dev"
+    json_path = "/mnt/mrc/ace2004/mrc-ner.train"
 
     vocab_file = os.path.join(bert_path, "vocab.txt")
     tokenizer = BertWordPieceTokenizer(vocab_file=vocab_file)

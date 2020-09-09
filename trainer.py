@@ -12,28 +12,27 @@
 
 
 import argparse
-from typing import List, Dict, Union
 import os
+from collections import namedtuple
+from typing import Dict
 
 import pytorch_lightning as pl
 import torch
-from torch import Tensor
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
+from tokenizers import BertWordPieceTokenizer
+from torch import Tensor
 from torch.nn.modules import CrossEntropyLoss, BCEWithLogitsLoss
 from torch.utils.data import DataLoader
-from transformers import BertConfig, AdamW
-from tokenizers import BertWordPieceTokenizer
-from collections import namedtuple
-from models.query_ner_config import BertQueryNerConfig
+from transformers import AdamW
 
-from models.bert_query_ner import BertQueryNER
 from datasets.mrc_ner_dataset import MRCNERDataset
 from datasets.truncate_dataset import TruncateDataset
+from metrics.query_span_f1 import QuerySpanF1
+from models.bert_query_ner import BertQueryNER
+from models.query_ner_config import BertQueryNerConfig
 from utils.get_parser import get_parser
-from metrics.functional.query_span_f1 import query_span_f1
 from utils.radom_seed import set_random_seed
-
 
 set_random_seed(0)
 
@@ -59,6 +58,8 @@ class BertLabeling(pl.LightningModule):
         self.data_dir = self.args.data_dir
 
         bert_config = BertQueryNerConfig.from_pretrained(args.bert_config_dir,
+                                                         hidden_dropout_prob=args.bert_dropout,
+                                                         attention_probs_dropout_prob=args.bert_dropout,
                                                          mrc_dropout=args.mrc_dropout)
 
         self.model = BertQueryNER.from_pretrained(args.bert_config_dir,
@@ -70,15 +71,20 @@ class BertLabeling(pl.LightningModule):
         self.loss_wb = args.weight_start
         self.loss_we = args.weight_end
         self.loss_ws = args.weight_span
+        self.flat_ner = args.flat
+        self.span_f1 = QuerySpanF1(flat=self.flat_ner)
 
     @staticmethod
     def add_model_specific_args(parent_parser):
         parser = argparse.ArgumentParser(parents=[parent_parser], add_help=False)
         parser.add_argument("--mrc_dropout", type=float, default=0.1,
                             help="mrc dropout rate")
+        parser.add_argument("--bert_dropout", type=float, default=0.1,
+                            help="bert dropout rate")
         parser.add_argument("--weight_start", type=float, default=1.0)
         parser.add_argument("--weight_end", type=float, default=1.0)
         parser.add_argument("--weight_span", type=float, default=1.0)
+        parser.add_argument("--flat", action="store_true", help="is flat ner")
 
         return parser
 
@@ -100,7 +106,7 @@ class BertLabeling(pl.LightningModule):
                           lr=self.args.lr,
                           eps=self.args.adam_epsilon)
         num_gpus = len(str(self.args.gpus).split(","))
-        t_total = len(self.train_dataloader()) * self.args.max_epochs // self.args.accumulate_grad_batches // num_gpus
+        t_total = (len(self.train_dataloader()) // (self.args.accumulate_grad_batches * num_gpus) + 1) * self.args.max_epochs
         scheduler = torch.optim.lr_scheduler.OneCycleLR(
             optimizer, max_lr=self.args.lr, pct_start=float(self.args.warmup_steps/t_total),
             total_steps=t_total, anneal_strategy='linear'
@@ -111,51 +117,31 @@ class BertLabeling(pl.LightningModule):
         """"""
         return self.model(input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids)
 
-    def compute_loss(self, pred: torch.Tensor, label: torch.Tensor, label_mask: torch.Tensor):
-        """
-        compute mask clf loss
-        Args:
-            pred: [batch, seq_length, num_labels]
-            label: [batch, seq_length]
-            label_mask: [batch, seq_length] 1 if compute loss at this position, else 0
+    def compute_loss(self, start_logits, end_logits, span_logits,
+                     start_labels, end_labels, match_labels, label_mask):
+        batch_size, seq_len, _ = start_logits.size()
+        float_label_mask = label_mask.float().view(-1)
 
-        Returns:
+        match_label_row_mask = label_mask.bool().unsqueeze(-1).repeat([1, 1, seq_len])
+        match_label_col_mask = label_mask.bool().unsqueeze(-2).repeat([1, seq_len, 1])
+        match_label_mask = match_label_row_mask & match_label_col_mask
+        match_label_mask = torch.triu(match_label_mask, 0)  # start should be greater equal to end
+        float_match_label_mask = match_label_mask.view(batch_size, -1).float()
 
-        """
-        epsilon = 1e-10
-        batch_size, seq_length = label.shape
-        loss = self.loss_fn(pred.view(batch_size * seq_length, -1), label.view(-1))
-        label_mask = label_mask.float().view(-1)
-        loss *= label_mask
-        loss = loss.sum() / (label_mask.sum() + epsilon)
-        return loss
+        start_loss = self.ce_loss(start_logits.view(-1, 2), start_labels.view(-1))
+        start_loss = (start_loss * float_label_mask).sum() / float_label_mask.sum()
+        end_loss = self.ce_loss(end_logits.view(-1, 2), end_labels.view(-1))
+        end_loss = (end_loss * float_label_mask).sum() / float_label_mask.sum()
+        match_loss = self.bce_loss(span_logits.view(batch_size, -1), match_labels.view(batch_size, -1).float())
+        match_loss = match_loss * float_match_label_mask
+        match_loss = match_loss.sum() / float_match_label_mask.sum()
+        # # [batch_size, seq_len**2]
+        # sorted_ohem_loss, max_idxs = torch.sort(match_loss, descending=True)
+        # # [batch_size]
+        # keep_num = max(1, match_labels.sum(-1)) * 5  # keep 5*num_positive position's loss
+        # select_idxs = [max_idx[keep] for max_idx, keep in zip(max_idxs, keep_num)]
 
-    @staticmethod
-    def get_multiclass_f1(confusion_matrix: torch.Tensor, label_idxs: List[int] = None):
-        """
-        get multicalss f1 score according to confusion_matrix
-        Args:
-            confusion_matrix: [num_labels, num_labels], where each entry C_{i,j} is the number of observations
-                              in group i that were predicted in group j.
-            label_idxs: calculate f1 on those labels
-        Returns:
-            labels_f1: [len(lbael_idxs)]
-        """
-
-        label_idxs = label_idxs or list(range(confusion_matrix.shape[0]))
-
-        epsilon = 1e-10
-
-        label_f1s = []
-        for idx in label_idxs:
-            tp = confusion_matrix[idx, idx]
-            tp_and_fp = confusion_matrix[:, idx].sum()
-            tp_and_fn = confusion_matrix[idx, :].sum()
-            precision = tp / (tp_and_fp + epsilon)
-            recall = tp / (tp_and_fn + epsilon)
-            f1 = precision * recall * 2 / (precision + recall + epsilon)
-            label_f1s.append(f1)
-        return torch.stack(label_f1s)
+        return start_loss, end_loss, match_loss
 
     def training_step(self, batch, batch_idx):
         """"""
@@ -163,24 +149,18 @@ class BertLabeling(pl.LightningModule):
             "lr": self.trainer.optimizers[0].param_groups[0]['lr']
         }
         tokens, token_type_ids, start_labels, end_labels, label_mask, match_labels = batch
-        batch_size, seq_len = tokens.size()
-        float_label_mask = label_mask.float().view(-1)
-
-        match_label_row_mask = label_mask.bool().unsqueeze(-1).repeat([1, 1, seq_len])
-        match_label_col_mask = label_mask.bool().unsqueeze(-2).repeat([1, seq_len, 1])
-        match_label_mask = match_label_row_mask & match_label_col_mask
-        float_match_label_mask = match_label_mask.view(batch_size, -1).float()
 
         # num_tasks * [bsz, length, num_labels]
         attention_mask = (tokens != 0).long()
         start_logits, end_logits, span_logits = self(tokens, attention_mask, token_type_ids)
 
-        start_loss = self.ce_loss(start_logits.view(-1, 2), start_labels.view(-1))
-        start_loss = (start_loss * float_label_mask).sum() / float_label_mask.sum()
-        end_loss = self.ce_loss(end_logits.view(-1, 2), end_labels.view(-1))
-        end_loss = (end_loss * float_label_mask).sum() / float_label_mask.sum()
-        match_loss = self.bce_loss(span_logits.view(batch_size, -1), match_labels.view(batch_size, -1).float())
-        match_loss = (match_loss * float_match_label_mask).sum() / float_match_label_mask.sum()
+        start_loss, end_loss, match_loss = self.compute_loss(start_logits=start_logits,
+                                                             end_logits=end_logits,
+                                                             span_logits=span_logits,
+                                                             start_labels=start_labels,
+                                                             end_labels=end_labels,
+                                                             match_labels=match_labels,
+                                                             label_mask=label_mask)
 
         total_loss = self.loss_wb * start_loss + self.loss_we * end_loss + self.loss_ws * match_loss
 
@@ -197,24 +177,17 @@ class BertLabeling(pl.LightningModule):
         output = {}
 
         tokens, token_type_ids, start_labels, end_labels, label_mask, match_labels = batch
-        batch_size, seq_len = tokens.size()
-        float_label_mask = label_mask.float().view(-1)
 
-        match_label_row_mask = label_mask.bool().unsqueeze(-1).repeat([1, 1, seq_len])
-        match_label_col_mask = label_mask.bool().unsqueeze(-2).repeat([1, seq_len, 1])
-        match_label_mask = match_label_row_mask & match_label_col_mask
-        float_match_label_mask = match_label_mask.view(batch_size, -1).float()
-
-        # num_tasks * [bsz, length, num_labels]
         attention_mask = (tokens != 0).long()
         start_logits, end_logits, span_logits = self(tokens, attention_mask, token_type_ids)
 
-        start_loss = self.ce_loss(start_logits.view(-1, 2), start_labels.view(-1))
-        start_loss = (start_loss * float_label_mask).sum() / float_label_mask.sum()
-        end_loss = self.ce_loss(end_logits.view(-1, 2), end_labels.view(-1))
-        end_loss = (end_loss * float_label_mask).sum() / float_label_mask.sum()
-        match_loss = self.bce_loss(span_logits.view(batch_size, -1), match_labels.view(batch_size, -1).float())
-        match_loss = (match_loss * float_match_label_mask).sum() / float_match_label_mask.sum()
+        start_loss, end_loss, match_loss = self.compute_loss(start_logits=start_logits,
+                                                             end_logits=end_logits,
+                                                             span_logits=span_logits,
+                                                             start_labels=start_labels,
+                                                             end_labels=end_labels,
+                                                             match_labels=match_labels,
+                                                             label_mask=label_mask)
 
         total_loss = self.loss_wb * start_loss + self.loss_we * end_loss + self.loss_ws * match_loss
 
@@ -223,8 +196,8 @@ class BertLabeling(pl.LightningModule):
         output[f"end_loss"] = end_loss
         output[f"match_loss"] = match_loss
 
-        span_f1_stats = query_span_f1(start_logits=start_logits, end_logits=end_logits, match_logits=span_logits,
-                                      label_mask=label_mask, match_labels=match_labels)
+        span_f1_stats = self.span_f1(start_logits=start_logits, end_logits=end_logits, match_logits=span_logits,
+                                     label_mask=label_mask, match_labels=match_labels)
         output["span_f1_stats"] = span_f1_stats
 
         return output
@@ -251,7 +224,7 @@ class BertLabeling(pl.LightningModule):
 
     def test_epoch_end(
         self,
-        outputs: Union[List[Dict[str, Tensor]], List[List[Dict[str, Tensor]]]]
+        outputs
     ) -> Dict[str, Dict[str, Tensor]]:
         """"""
         return self.validation_epoch_end(outputs)
@@ -276,7 +249,9 @@ class BertLabeling(pl.LightningModule):
         vocab_path = os.path.join(self.bert_dir, "vocab.txt")
         dataset = MRCNERDataset(json_path=json_path,
                                 tokenizer=BertWordPieceTokenizer(vocab_file=vocab_path),
-                                max_length=self.args.max_length)
+                                max_length=self.args.max_length,
+                                )
+
 
         if limit is not None:
             dataset = TruncateDataset(dataset, limit)
@@ -285,6 +260,7 @@ class BertLabeling(pl.LightningModule):
             dataset=dataset,
             batch_size=self.args.batch_size,
             num_workers=self.args.workers,
+            shuffle=True if prefix == "train" else False
         )
 
         return dataloader
@@ -303,6 +279,7 @@ def run_dataloader():
 
     args = parser.parse_args()
     args.workers = 0
+    args.default_root_dir = "/mnt/data/mrc/train_logs/debug"
 
     model = BertLabeling(args)
     from tokenizers import BertWordPieceTokenizer
