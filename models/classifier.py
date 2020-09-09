@@ -12,6 +12,7 @@
 
 
 import torch.nn as nn
+from torch.nn import functional as F
 
 
 class SingleLinearClassifier(nn.Module):
@@ -22,7 +23,6 @@ class SingleLinearClassifier(nn.Module):
 
     def forward(self, input_features):
         features_output = self.classifier(input_features)
-
         return features_output
 
 
@@ -36,7 +36,8 @@ class MultiNonLinearClassifier(nn.Module):
 
     def forward(self, input_features):
         features_output1 = self.classifier1(input_features)
-        features_output1 = nn.ReLU()(features_output1)
+        # features_output1 = F.relu(features_output1)
+        features_output1 = F.gelu(features_output1)
         features_output1 = self.dropout(features_output1)
         features_output2 = self.classifier2(features_output1)
         return features_output2
