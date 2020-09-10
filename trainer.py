@@ -69,9 +69,9 @@ class BertLabeling(pl.LightningModule):
         self.bce_loss = BCEWithLogitsLoss(reduction="none")
         # todo(yuxian): 由于match loss是n^2的，应该特殊调整一下loss rate
         weight_sum = args.weight_start + args.weight_end + args.weight_span
-        self.loss_wb = args.weight_start / weight_sum
-        self.loss_we = args.weight_end / weight_sum
-        self.loss_ws = args.weight_span / weight_sum
+        self.weight_start = args.weight_start / weight_sum
+        self.weight_end = args.weight_end / weight_sum
+        self.weight_span = args.weight_span / weight_sum
         self.flat_ner = args.flat
         self.hard_span_only = args.hard_span_only
         self.span_f1 = QuerySpanF1(flat=self.flat_ner)
@@ -132,7 +132,7 @@ class BertLabeling(pl.LightningModule):
         match_label_row_mask = label_mask.bool().unsqueeze(-1).expand(-1, -1, seq_len)
         match_label_col_mask = label_mask.bool().unsqueeze(-2).expand(-1, seq_len, -1)
         match_label_mask = match_label_row_mask & match_label_col_mask
-        match_label_mask = torch.triu(match_label_mask, 0)  # start should be greater equal to end
+        match_label_mask = torch.triu(match_label_mask, 0)  # start should be less equal to end
 
         if not self.hard_span_only:
             # naive mask
@@ -157,11 +157,6 @@ class BertLabeling(pl.LightningModule):
         match_loss = self.bce_loss(span_logits.view(batch_size, -1), match_labels.view(batch_size, -1).float())
         match_loss = match_loss * float_match_label_mask
         match_loss = match_loss.sum() / (float_match_label_mask.sum() + 1e-10)
-        # # [batch_size, seq_len**2]
-        # sorted_ohem_loss, max_idxs = torch.sort(match_loss, descending=True)
-        # # [batch_size]
-        # keep_num = max(1, match_labels.sum(-1)) * 5  # keep 5*num_positive position's loss
-        # select_idxs = [max_idx[keep] for max_idx, keep in zip(max_idxs, keep_num)]
 
         return start_loss, end_loss, match_loss
 
@@ -184,7 +179,7 @@ class BertLabeling(pl.LightningModule):
                                                              match_labels=match_labels,
                                                              label_mask=label_mask)
 
-        total_loss = self.loss_wb * start_loss + self.loss_we * end_loss + self.loss_ws * match_loss
+        total_loss = self.weight_start * start_loss + self.weight_end * end_loss + self.weight_span * match_loss
 
         tf_board_logs[f"train_loss"] = total_loss
         tf_board_logs[f"start_loss"] = start_loss
@@ -211,7 +206,7 @@ class BertLabeling(pl.LightningModule):
                                                              match_labels=match_labels,
                                                              label_mask=label_mask)
 
-        total_loss = self.loss_wb * start_loss + self.loss_we * end_loss + self.loss_ws * match_loss
+        total_loss = self.weight_start * start_loss + self.weight_end * end_loss + self.weight_span * match_loss
 
         output[f"val_loss"] = total_loss
         output[f"start_loss"] = start_loss

@@ -60,8 +60,8 @@ class MRCNERDataset(Dataset):
         tokenizer = self.tokenzier
 
         # todo(yuxian): evaluate时可能要用到
-        qas_id = data["qas_id"]
-        ner_cate = data["entity_label"]
+        # qas_id = data["qas_id"]
+        # ner_cate = data["entity_label"]
 
         query = data["query"]
         context = data["context"]
@@ -150,7 +150,8 @@ def run_dataset():
     # zh datasets
     bert_path = "/mnt/mrc/chinese_L-12_H-768_A-12"
     # json_path = "/mnt/mrc/zh_msra/mrc-ner.dev"
-    json_path = "/mnt/mrc/zh_onto4/mrc-ner.train"
+    # json_path = "/mnt/mrc/zh_onto4/mrc-ner.train"
+    json_path = "/mnt/mrc/zh_msra_yuxian/mrc_format/mrc-ner.train"
     is_chinese = True
 
     # en datasets
