@@ -27,6 +27,6 @@ class QuerySpanF1(TensorMetric):
                                           reduce_op=reduce_op)
         self.flat = flat
 
-    def forward(self, start_logits, end_logits, match_logits, label_mask, match_labels):
-        return query_span_f1(start_logits, end_logits, match_logits, label_mask, match_labels,
+    def forward(self, start_preds, end_preds, match_logits, start_label_mask, end_label_mask, match_labels):
+        return query_span_f1(start_preds, end_preds, match_logits, start_label_mask, end_label_mask, match_labels,
                              flat=self.flat)
