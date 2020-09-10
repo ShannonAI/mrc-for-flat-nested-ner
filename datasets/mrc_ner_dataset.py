@@ -60,8 +60,8 @@ class MRCNERDataset(Dataset):
         tokenizer = self.tokenzier
 
         # todo(yuxian): evaluate时可能要用到
-        qas_id = data["qas_id"]
-        ner_cate = data["entity_label"]
+        # qas_id = data["qas_id"]
+        # ner_cate = data["entity_label"]
 
         query = data["query"]
         context = data["context"]
@@ -120,7 +120,15 @@ class MRCNERDataset(Dataset):
         start_labels = start_labels[: self.max_length]
         end_labels = end_labels[: self.max_length]
         label_mask = label_mask[: self.max_length]
-        # label_mask = label_mask[: self.max_length - 10] + [0] * 10  # do not count int borderline cases.
+
+        # make sure last token is [SEP]
+        sep_token = tokenizer.token_to_id("[SEP]")
+        if tokens[-1] != sep_token:
+            assert len(tokens) == self.max_length
+            tokens = tokens[: -1] + [sep_token]
+            start_labels[-1] = 0
+            end_labels[-1] = 0
+            label_mask[-1] = 0
 
         match_labels = torch.zeros([self.max_length, self.max_length], dtype=torch.long)
         for start, end in zip(new_start_positions, new_end_positions):
@@ -150,7 +158,8 @@ def run_dataset():
     # zh datasets
     bert_path = "/mnt/mrc/chinese_L-12_H-768_A-12"
     # json_path = "/mnt/mrc/zh_msra/mrc-ner.dev"
-    json_path = "/mnt/mrc/zh_onto4/mrc-ner.train"
+    # json_path = "/mnt/mrc/zh_onto4/mrc-ner.train"
+    json_path = "/mnt/mrc/zh_msra_yuxian/mrc_format/mrc-ner.train"
     is_chinese = True
 
     # en datasets
