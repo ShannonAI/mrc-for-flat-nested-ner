@@ -49,19 +49,23 @@ class MRCNERDataset(Dataset):
         Returns:
             tokens: tokens of [query, context]
             token_type_ids: token type ids, 0 for query, 1 for context
-            # start_positions: start positions of NER in tokens
-            # end_positions: end positions(included) of NER in tokens
             start_labels: start labels of NER in tokens, [seq_len]
             end_labels: end labelsof NER in tokens, [seq_len]
             label_mask: label mask, 1 for counting into loss, 0 for ignoring.
             match_labels: match labels, [seq_len, seq_len]
+            sample_idx: sample id
+            label_idx: label id
+
         """
         data = self.all_data[item]
         tokenizer = self.tokenzier
 
         # todo(yuxian): evaluate时可能要用到
-        # qas_id = data["qas_id"]
-        # ner_cate = data["entity_label"]
+        qas_id = data.get("qas_id", "0.0")
+        sample_idx, label_idx = qas_id.split(".")
+        sample_idx = torch.LongTensor([int(sample_idx)])
+        label_idx = torch.LongTensor([int(label_idx)])
+
 
         query = data["query"]
         context = data["context"]
@@ -161,7 +165,9 @@ class MRCNERDataset(Dataset):
             torch.LongTensor(self.pad(end_labels)),
             torch.LongTensor(self.pad(start_label_mask)),
             torch.LongTensor(self.pad(end_label_mask)),
-            match_labels
+            match_labels,
+            sample_idx,
+            label_idx
         ]
 
     def pad(self, lst, value=0, max_length=None):
