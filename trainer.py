@@ -29,6 +29,7 @@ from torch.optim import SGD
 
 from datasets.mrc_ner_dataset import MRCNERDataset
 from datasets.truncate_dataset import TruncateDataset
+from datasets.collate_functions import collate_to_max_length
 from metrics.query_span_f1 import QuerySpanF1
 from models.bert_query_ner import BertQueryNER
 from models.query_ner_config import BertQueryNerConfig
@@ -67,6 +68,7 @@ class BertLabeling(pl.LightningModule):
         self.model = BertQueryNER.from_pretrained(args.bert_config_dir,
                                                   config=bert_config)
         print(self.model)
+        print(args.__dict__ if isinstance(args, argparse.ArgumentParser) else args)
         # self.ce_loss = CrossEntropyLoss(reduction="none")
         self.loss_type = args.loss_type
         # self.loss_type = "bce"
@@ -186,7 +188,7 @@ class BertLabeling(pl.LightningModule):
         tf_board_logs = {
             "lr": self.trainer.optimizers[0].param_groups[0]['lr']
         }
-        tokens, token_type_ids, start_labels, end_labels, start_label_mask, end_label_mask, match_labels = batch
+        tokens, token_type_ids, start_labels, end_labels, start_label_mask, end_label_mask, match_labels, sample_idx, label_idx = batch
 
         # num_tasks * [bsz, length, num_labels]
         attention_mask = (tokens != 0).long()
@@ -216,7 +218,7 @@ class BertLabeling(pl.LightningModule):
 
         output = {}
 
-        tokens, token_type_ids, start_labels, end_labels, start_label_mask, end_label_mask, match_labels = batch
+        tokens, token_type_ids, start_labels, end_labels, start_label_mask, end_label_mask, match_labels, sample_idx, label_idx = batch
 
         attention_mask = (tokens != 0).long()
         start_logits, end_logits, span_logits = self(tokens, attention_mask, token_type_ids)
@@ -295,7 +297,8 @@ class BertLabeling(pl.LightningModule):
         dataset = MRCNERDataset(json_path=json_path,
                                 tokenizer=BertWordPieceTokenizer(vocab_file=vocab_path),
                                 max_length=self.args.max_length,
-                                is_chinese=self.chinese
+                                is_chinese=self.chinese,
+                                pad_to_maxlen=False
                                 )
 
 
@@ -306,7 +309,8 @@ class BertLabeling(pl.LightningModule):
             dataset=dataset,
             batch_size=self.args.batch_size,
             num_workers=self.args.workers,
-            shuffle=True if prefix == "train" else False
+            shuffle=True if prefix == "train" else False,
+            collate_fn=collate_to_max_length
         )
 
         return dataloader

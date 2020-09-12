@@ -28,7 +28,7 @@ class MRCNERDataset(Dataset):
         is_chinese: is chinese dataset
     """
     def __init__(self, json_path, tokenizer: BertWordPieceTokenizer, max_length: int = 128, possible_only=False,
-                 is_chinese=False):
+                 is_chinese=False, pad_to_maxlen=False):
         self.all_data = json.load(open(json_path))
         self.tokenzier = tokenizer
         self.max_length = max_length
@@ -38,6 +38,7 @@ class MRCNERDataset(Dataset):
                 x for x in self.all_data if x["start_position"]
             ]
         self.is_chinese = is_chinese
+        self.pad_to_maxlen = pad_to_maxlen
 
     def __len__(self):
         return len(self.all_data)
@@ -47,11 +48,11 @@ class MRCNERDataset(Dataset):
         Args:
             item: int, idx
         Returns:
-            tokens: tokens of [query, context]
-            token_type_ids: token type ids, 0 for query, 1 for context
+            tokens: tokens of query + context, [seq_len]
+            token_type_ids: token type ids, 0 for query, 1 for context, [seq_len]
             start_labels: start labels of NER in tokens, [seq_len]
             end_labels: end labelsof NER in tokens, [seq_len]
-            label_mask: label mask, 1 for counting into loss, 0 for ignoring.
+            label_mask: label mask, 1 for counting into loss, 0 for ignoring. [seq_len]
             match_labels: match labels, [seq_len, seq_len]
             sample_idx: sample id
             label_idx: label id
@@ -60,12 +61,10 @@ class MRCNERDataset(Dataset):
         data = self.all_data[item]
         tokenizer = self.tokenzier
 
-        # todo(yuxian): evaluate时可能要用到
         qas_id = data.get("qas_id", "0.0")
         sample_idx, label_idx = qas_id.split(".")
         sample_idx = torch.LongTensor([int(sample_idx)])
         label_idx = torch.LongTensor([int(label_idx)])
-
 
         query = data["query"]
         context = data["context"]
@@ -152,19 +151,28 @@ class MRCNERDataset(Dataset):
             start_label_mask[-1] = 0
             end_label_mask[-1] = 0
 
-        match_labels = torch.zeros([self.max_length, self.max_length], dtype=torch.long)
+        if self.pad_to_maxlen:
+            tokens = self.pad(tokens, 0)
+            type_ids = self.pad(type_ids, 1)
+            start_labels = self.pad(start_labels)
+            end_labels = self.pad(end_labels)
+            start_label_mask = self.pad(start_label_mask)
+            end_label_mask = self.pad(end_label_mask)
+
+        seq_len = len(tokens)
+        match_labels = torch.zeros([seq_len, seq_len], dtype=torch.long)
         for start, end in zip(new_start_positions, new_end_positions):
-            if start >= self.max_length or end >= self.max_length:
+            if start >= seq_len or end >= seq_len:
                 continue
             match_labels[start, end] = 1
 
         return [
-            torch.LongTensor(self.pad(tokens, 0)),
-            torch.LongTensor(self.pad(type_ids, 1)),
-            torch.LongTensor(self.pad(start_labels)),
-            torch.LongTensor(self.pad(end_labels)),
-            torch.LongTensor(self.pad(start_label_mask)),
-            torch.LongTensor(self.pad(end_label_mask)),
+            torch.LongTensor(tokens),
+            torch.LongTensor(type_ids),
+            torch.LongTensor(start_labels),
+            torch.LongTensor(end_labels),
+            torch.LongTensor(start_label_mask),
+            torch.LongTensor(end_label_mask),
             match_labels,
             sample_idx,
             label_idx
@@ -180,16 +188,18 @@ class MRCNERDataset(Dataset):
 def run_dataset():
     """test dataset"""
     import os
+    from datasets.collate_functions import collate_to_max_length
+    from torch.utils.data import DataLoader
     # zh datasets
     # bert_path = "/mnt/mrc/chinese_L-12_H-768_A-12"
-    # json_path = "/mnt/mrc/zh_msra/mrc-ner.dev"
-    # json_path = "/mnt/mrc/zh_onto4/mrc-ner.train"
-    # json_path = "/mnt/mrc/zh_msra_yuxian/mrc_format/mrc-ner.train"
-    is_chinese = True
+    # json_path = "/mnt/mrc/zh_msra/mrc-ner.test"
+    # # json_path = "/mnt/mrc/zh_onto4/mrc-ner.train"
+    # is_chinese = True
 
     # en datasets
     bert_path = "/mnt/mrc/bert-base-uncased"
     json_path = "/mnt/mrc/ace2004/mrc-ner.train"
+    # json_path = "/mnt/mrc/genia/mrc-ner.train"
     is_chinese = False
 
     vocab_file = os.path.join(bert_path, "vocab.txt")
@@ -197,17 +207,21 @@ def run_dataset():
     dataset = MRCNERDataset(json_path=json_path, tokenizer=tokenizer,
                             is_chinese=is_chinese)
 
-    for tokens, token_type_ids, start_labels, end_labels, start_label_mask, end_label_mask, match_labels in dataset:
-        tokens = tokens.tolist()
-        start_positions, end_positions = torch.where(match_labels > 0)
-        start_positions = start_positions.tolist()
-        end_positions = end_positions.tolist()
-        if not start_positions:
-            continue
-        print("="*20)
-        print(tokenizer.decode(tokens, skip_special_tokens=False))
-        for start, end in zip(start_positions, end_positions):
-            print(tokenizer.decode(tokens[start: end+1]))
+    dataloader = DataLoader(dataset, batch_size=32,
+                            collate_fn=collate_to_max_length)
+
+    for batch in dataloader:
+        for tokens, token_type_ids, start_labels, end_labels, start_label_mask, end_label_mask, match_labels, sample_idx, label_idx in zip(*batch):
+            tokens = tokens.tolist()
+            start_positions, end_positions = torch.where(match_labels > 0)
+            start_positions = start_positions.tolist()
+            end_positions = end_positions.tolist()
+            if not start_positions:
+                continue
+            print("="*20)
+            print(f"len: {len(tokens)}", tokenizer.decode(tokens, skip_special_tokens=False))
+            for start, end in zip(start_positions, end_positions):
+                print(str(sample_idx.item()), str(label_idx.item()) + "\t" + tokenizer.decode(tokens[start: end+1]))
 
 
 if __name__ == '__main__':
