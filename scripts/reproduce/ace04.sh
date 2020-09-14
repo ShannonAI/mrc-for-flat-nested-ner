@@ -1,3 +1,4 @@
+export PYTHONPATH="$PWD"
 DATA_DIR="/mnt/mrc/ace2004"
 BERT_DIR="/mnt/mrc/bert-large-uncased"
 

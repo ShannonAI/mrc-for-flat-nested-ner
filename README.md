@@ -33,7 +33,11 @@ For Chinese Datasets, we use [RoBERTa-wwm-ext-large](https://github.com/ymcui/Ch
 
 ## Train
 The main training procedure is in `trainer.py`
-Examples to start training are in `scripts/reproduce`
+
+Examples to start training are in `scripts/reproduce`.
+
+Note that you may need to change `DATA_DIR`, `BERT_DIR`, `OUTPUT_DIR` to your own
+dataset path, bert model path and log path, respectively.
 
 ## Evaluate
 `trainer.py` will automatically evaluate on dev set every `val_check_interval` epochs,
