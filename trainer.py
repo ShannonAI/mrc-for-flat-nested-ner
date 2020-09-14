@@ -280,8 +280,7 @@ class BertLabeling(pl.LightningModule):
         # return self.get_dataloader("dev", 100)
 
     def val_dataloader(self):
-        # return self.get_dataloader("dev")
-        return self.get_dataloader("dev", 100)
+        return self.get_dataloader("dev")
 
     def test_dataloader(self):
         return self.get_dataloader("test")
