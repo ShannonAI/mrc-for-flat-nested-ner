@@ -49,11 +49,11 @@ def convert_file(input_file, output_file, tag2query_file):
 def main():
     msra_raw_dir = "/mnt/mrc/zh_msra_yuxian"
     msra_mrc_dir = "/mnt/mrc/zh_msra_yuxian/mrc_format"
-    tag2query_file = "msra_tag2query.json"
+    tag2query_file = "queries/zh_msra.json"
     os.makedirs(msra_mrc_dir, exist_ok=True)
     for phase in ["train", "dev", "test"]:
         old_file = os.path.join(msra_raw_dir, f"{phase}.tsv")
-        new_file =  os.path.join(msra_mrc_dir, f"mrc-ner.{phase}")
+        new_file = os.path.join(msra_mrc_dir, f"mrc-ner.{phase}")
         convert_file(old_file, new_file, tag2query_file)
 
 

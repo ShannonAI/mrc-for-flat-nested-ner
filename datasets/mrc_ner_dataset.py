@@ -80,7 +80,6 @@ class MRCNERDataset(Dataset):
             start_positions = [x + sum([len(w) for w in words[:x]]) for x in start_positions]
             end_positions = [x + sum([len(w) for w in words[:x + 1]]) for x in end_positions]
 
-        # todo(yuxian): 看看是不是会有更好的截断方法
         query_context_tokens = tokenizer.encode(query, context, add_special_tokens=True)
         tokens = query_context_tokens.ids
         type_ids = query_context_tokens.type_ids

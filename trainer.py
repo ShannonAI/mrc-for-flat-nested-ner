@@ -301,7 +301,6 @@ class BertLabeling(pl.LightningModule):
                                 pad_to_maxlen=False
                                 )
 
-
         if limit is not None:
             dataset = TruncateDataset(dataset, limit)
 

@@ -9,9 +9,6 @@ WARMUP=0
 MAXLEN=128
 MAXNORM=1.0
 
-# todo: 1.增大max_epochs 2.bert-large
-
-
 OUTPUT_DIR="/mnt/mrc/train_logs/ace2004/ace2004_20200910reproduce_lr${LR}_drop${MRC_DROPOUT}_norm${MAXNORM}_bsz32_hard_span_weight${SPAN_WEIGHT}_warmup${WARMUP}_maxlen${MAXLEN}_newtrunc_debug"
 mkdir -p $OUTPUT_DIR
 python trainer.py \
