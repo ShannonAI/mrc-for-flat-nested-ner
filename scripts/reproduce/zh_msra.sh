@@ -28,4 +28,5 @@ python trainer.py \
 --mrc_dropout $DROPOUT \
 --max_epochs 20 \
 --hard_span_only \
---weight_span $SPAN_WEIGHT
+--weight_span $SPAN_WEIGHT \
+--span_loss_candidates "pred_and_gold"

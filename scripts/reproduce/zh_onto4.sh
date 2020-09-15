@@ -27,7 +27,7 @@ python trainer.py \
 --default_root_dir $OUTPUT_DIR \
 --max_epochs 20 \
 --chinese \
---hard_span_only \
+--span_loss_candidates "pred_and_gold" \
 --weight_span $WEIGHT_SPAN \
 --mrc_dropout 0.2 \
 --warmup_steps 0 \

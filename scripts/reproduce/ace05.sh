@@ -30,7 +30,7 @@ python trainer.py \
 --mrc_dropout $MRC_DROPOUT \
 --bert_dropout $BERT_DROPOUT \
 --max_epochs 20 \
---hard_span_only \
+--span_loss_candidates "pred_and_gold" \
 --weight_span $SPAN_WEIGHT \
 --warmup_steps $WARMUP \
 --max_length $MAXLEN \

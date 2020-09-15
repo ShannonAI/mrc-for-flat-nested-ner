@@ -82,10 +82,10 @@ class BertLabeling(pl.LightningModule):
         self.weight_end = args.weight_end / weight_sum
         self.weight_span = args.weight_span / weight_sum
         self.flat_ner = args.flat
-        self.hard_span_only = args.hard_span_only
         self.span_f1 = QuerySpanF1(flat=self.flat_ner)
         self.chinese = args.chinese
         self.optimizer = "adamw"  # args.optimizer
+        self.span_loss_candidates = args.span_loss_candidates
 
     @staticmethod
     def add_model_specific_args(parent_parser):
@@ -98,8 +98,8 @@ class BertLabeling(pl.LightningModule):
         parser.add_argument("--weight_end", type=float, default=1.0)
         parser.add_argument("--weight_span", type=float, default=1.0)
         parser.add_argument("--flat", action="store_true", help="is flat ner")
-        parser.add_argument("--hard_span_only", action="store_true",
-                            help="use golden/pred start/end to compute span loss")
+        parser.add_argument("--span_loss_candidates", choices=["all", "pred_and_gold", "gold"],
+                            default="all", help="Candidates used to compute span loss")
         parser.add_argument("--chinese", action="store_true",
                             help="is chinese dataset")
         parser.add_argument("--loss_type", choices=["bce", "dice"], default="bce",
@@ -153,19 +153,23 @@ class BertLabeling(pl.LightningModule):
         match_label_mask = match_label_row_mask & match_label_col_mask
         match_label_mask = torch.triu(match_label_mask, 0)  # start should be less equal to end
 
-        if not self.hard_span_only:
+        if self.span_loss_candidates == "all":
             # naive mask
             float_match_label_mask = match_label_mask.view(batch_size, -1).float()
         else:
             # use only pred or golden start/end to compute match loss
             start_preds = start_logits > 0
             end_preds = end_logits > 0
-            match_candidates = torch.logical_or(
-                (start_preds.unsqueeze(-1).expand(-1, -1, seq_len)
-                 & end_preds.unsqueeze(-2).expand(-1, seq_len, -1)),
-                (start_labels.unsqueeze(-1).expand(-1, -1, seq_len)
-                 & end_labels.unsqueeze(-2).expand(-1, seq_len, -1))
-            )
+            if self.span_loss_candidates == "gold":
+                match_candidates = ((start_labels.unsqueeze(-1).expand(-1, -1, seq_len) > 0)
+                                    & (end_labels.unsqueeze(-2).expand(-1, seq_len, -1) > 0))
+            else:
+                match_candidates = torch.logical_or(
+                    (start_preds.unsqueeze(-1).expand(-1, -1, seq_len)
+                     & end_preds.unsqueeze(-2).expand(-1, seq_len, -1)),
+                    (start_labels.unsqueeze(-1).expand(-1, -1, seq_len)
+                     & end_labels.unsqueeze(-2).expand(-1, seq_len, -1))
+                )
             match_label_mask = match_label_mask & match_candidates
             float_match_label_mask = match_label_mask.view(batch_size, -1).float()
         if self.loss_type == "bce":
