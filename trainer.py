@@ -104,8 +104,8 @@ class BertLabeling(pl.LightningModule):
                             help="is chinese dataset")
         parser.add_argument("--loss_type", choices=["bce", "dice"], default="bce",
                             help="loss type")
-        # parser.add_argument("--optimizer", choices=["adamw", "sgd"], default="adamw",
-        #                     help="loss type")
+        parser.add_argument("--optimizer", choices=["adamw", "sgd"], default="adamw",
+                            help="loss type")
         parser.add_argument("--dice_smooth", type=float, default=1e-8,
                             help="smooth value of dice loss")
         return parser
@@ -129,7 +129,7 @@ class BertLabeling(pl.LightningModule):
                               lr=self.args.lr,
                               eps=self.args.adam_epsilon)
         else:
-            optimizer = SGD(lr=self.args.lr)
+            optimizer = SGD(optimizer_grouped_parameters, lr=self.args.lr, momentum=0.9)
         num_gpus = len(str(self.args.gpus).split(","))
         t_total = (len(self.train_dataloader()) // (self.args.accumulate_grad_batches * num_gpus) + 1) * self.args.max_epochs
         scheduler = torch.optim.lr_scheduler.OneCycleLR(

@@ -31,13 +31,14 @@ def convert_file(input_file, output_file, tag2query_file):
         origin_count += 1
         context = data["context"]
         label2positions = data["label"]
-        for tag, query in tag2query.items():
+        for tag_idx, (tag, query) in enumerate(tag2query.items()):
             positions = label2positions.get(tag, [])
             mrc_sample = {
                 "context": context,
                 "query": query,
                 "start_position": [int(x.split(";")[0]) for x in positions],
-                "end_position": [int(x.split(";")[1]) for x in positions]
+                "end_position": [int(x.split(";")[1]) for x in positions],
+                "qas_id": f"{origin_count}.{tag_idx}"
             }
             output.append(mrc_sample)
             new_count += 1
