@@ -36,6 +36,7 @@ from models.query_ner_config import BertQueryNerConfig
 from loss import *
 from utils.get_parser import get_parser
 from utils.radom_seed import set_random_seed
+import logging
 
 set_random_seed(0)
 
