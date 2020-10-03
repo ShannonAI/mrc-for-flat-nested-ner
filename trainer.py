@@ -67,8 +67,8 @@ class BertLabeling(pl.LightningModule):
 
         self.model = BertQueryNER.from_pretrained(args.bert_config_dir,
                                                   config=bert_config)
-        print(self.model)
-        print(args.__dict__ if isinstance(args, argparse.ArgumentParser) else args)
+        # logging.info(str(self.model))
+        logging.info(str(args.__dict__ if isinstance(args, argparse.ArgumentParser) else args))
         # self.ce_loss = CrossEntropyLoss(reduction="none")
         self.loss_type = args.loss_type
         # self.loss_type = "bce"
@@ -84,7 +84,7 @@ class BertLabeling(pl.LightningModule):
         self.flat_ner = args.flat
         self.span_f1 = QuerySpanF1(flat=self.flat_ner)
         self.chinese = args.chinese
-        self.optimizer = "adamw"  # args.optimizer
+        self.optimizer = args.optimizer
         self.span_loss_candidates = args.span_loss_candidates
 
     @staticmethod
@@ -108,6 +108,8 @@ class BertLabeling(pl.LightningModule):
                             help="loss type")
         parser.add_argument("--dice_smooth", type=float, default=1e-8,
                             help="smooth value of dice loss")
+        parser.add_argument("--final_div_factor", type=float, default=1e4,
+                            help="final div factor of linear decay scheduler")
         return parser
 
     def configure_optimizers(self):
@@ -127,13 +129,14 @@ class BertLabeling(pl.LightningModule):
             optimizer = AdamW(optimizer_grouped_parameters,
                               betas=(0.9, 0.98),  # according to RoBERTa paper
                               lr=self.args.lr,
-                              eps=self.args.adam_epsilon)
+                              eps=self.args.adam_epsilon,)
         else:
             optimizer = SGD(optimizer_grouped_parameters, lr=self.args.lr, momentum=0.9)
-        num_gpus = len(str(self.args.gpus).split(","))
+        num_gpus = len([x for x in str(self.args.gpus).split(",") if x.strip()])
         t_total = (len(self.train_dataloader()) // (self.args.accumulate_grad_batches * num_gpus) + 1) * self.args.max_epochs
         scheduler = torch.optim.lr_scheduler.OneCycleLR(
             optimizer, max_lr=self.args.lr, pct_start=float(self.args.warmup_steps/t_total),
+            final_div_factor=self.args.final_div_factor,
             total_steps=t_total, anneal_strategy='linear'
         )
         return [optimizer], [{"scheduler": scheduler, "interval": "step"}]

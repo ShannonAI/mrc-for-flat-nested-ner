@@ -29,7 +29,7 @@ class MRCNERDataset(Dataset):
     """
     def __init__(self, json_path, tokenizer: BertWordPieceTokenizer, max_length: int = 128, possible_only=False,
                  is_chinese=False, pad_to_maxlen=False):
-        self.all_data = json.load(open(json_path))
+        self.all_data = json.load(open(json_path, encoding="utf-8"))
         self.tokenzier = tokenizer
         self.max_length = max_length
         self.possible_only = possible_only

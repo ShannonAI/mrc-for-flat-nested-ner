@@ -40,41 +40,13 @@ def query_span_f1(start_preds, end_preds, match_logits, start_label_mask, end_la
     # [bsz, seq_len]
     end_preds = end_preds.bool()
 
-    if flat:
-        # xiaoya version
-        # flat_match_preds = torch.zeros_like(match_labels, dtype=torch.bool)
-        # for batch_idx, (start_pred, end_pred, match_pred, mask) in \
-        #     enumerate(zip(start_preds, end_preds, match_preds, label_mask)):
-        #     pred_spans = extract_flat_spans(start_pred.tolist(), end_pred.tolist(), match_pred.tolist(), mask.tolist())
-        #     for start, end in pred_spans:
-        #         flat_match_preds[batch_idx, start, end-1] = True
-        # match_preds = flat_match_preds
-
-        match_preds = (match_preds
-                       & start_preds.unsqueeze(-1).expand(-1, -1, seq_len)
-                       & end_preds.unsqueeze(1).expand(-1, seq_len, -1))
-        match_label_mask = (start_label_mask.unsqueeze(-1).expand(-1, -1, seq_len)
-                            & end_label_mask.unsqueeze(1).expand(-1, seq_len, -1))
-        match_label_mask = torch.triu(match_label_mask, 0)  # start should be less or equal to end
-        match_preds = match_label_mask & match_preds
-        # remove overlap pairs
-        # flat_match_preds = torch.zeros_like(match_labels, dtype=torch.bool)
-        # for sent_idx, match_pred in enumerate(match_preds):
-        #     starts, ends = torch.where(match_pred == True)
-        #     unoverlapped_spans = remove_overlap([(start, end)
-        #                                          for start, end in zip(starts.tolist(), ends.tolist())])
-        #     for start, end in unoverlapped_spans:
-        #         flat_match_preds[sent_idx][start][end] = True
-        # match_preds = flat_match_preds
-
-    else:
-        match_preds = (match_preds
-                       & start_preds.unsqueeze(-1).expand(-1, -1, seq_len)
-                       & end_preds.unsqueeze(1).expand(-1, seq_len, -1))
-        match_label_mask = (start_label_mask.unsqueeze(-1).expand(-1, -1, seq_len)
-                            & end_label_mask.unsqueeze(1).expand(-1, seq_len, -1))
-        match_label_mask = torch.triu(match_label_mask, 0)  # start should be less or equal to end
-        match_preds = match_label_mask & match_preds
+    match_preds = (match_preds
+                   & start_preds.unsqueeze(-1).expand(-1, -1, seq_len)
+                   & end_preds.unsqueeze(1).expand(-1, seq_len, -1))
+    match_label_mask = (start_label_mask.unsqueeze(-1).expand(-1, -1, seq_len)
+                        & end_label_mask.unsqueeze(1).expand(-1, seq_len, -1))
+    match_label_mask = torch.triu(match_label_mask, 0)  # start should be less or equal to end
+    match_preds = match_label_mask & match_preds
 
     tp = (match_labels & match_preds).long().sum()
     fp = (~match_labels & match_preds).long().sum()

@@ -49,12 +49,6 @@ To evaluate them, use `evluate.py`
 
 
 ## todo:
-6. 调整span-match layer的层数（现在是两层？）
-14. random seed
-16. warmup
-18. start/end也用FFN
-19. 调整maxlen
-20. 英文和数字全角转半角？
-21. 可以在Dataset中添加sliding window的选项，直接evaluate看效果。
-22. flat-ner不同种类也要去除overlap，可以先贪婪地去除一下看效果(目测没区别)
-23. 英文改用BERT-Large wwm
+1. use warmup
+1. use MLP for start/end prediction
+1. add sliding window
