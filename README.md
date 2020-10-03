@@ -44,3 +44,23 @@ dataset path, bert model path and log path, respectively.
 and save the topk checkpoints to `default_root_dir`.
 
 To evaluate them, use `evaluate.py`
+
+
+## Results
+With training scripts in `scripts/reproduce`, one should be able to reproduce results for four datasets below:
+
+### Flat NER Datasets
+
+| Dataset | Zh-MSRA | Zh-OntoNotes4.0 | 
+|---|---|---|
+| Previous SOTA | 95.54  | 81.63 | 
+| Our method | **95.75** | **82.11** | 
+|  | **(+0.21)** | **(+0.48)** | 
+
+### Nested NER Datasets
+
+| Dataset | ACE 2004 | ACE 2005 | 
+|---|---|---|
+| Previous SOTA | 84.7 | 84.33 | 
+| Our method | **85.98** | **86.88** |
+|  | **(+1.28)** | **(+2.55)** |

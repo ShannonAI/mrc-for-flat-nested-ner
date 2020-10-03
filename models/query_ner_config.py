@@ -1,14 +1,4 @@
 # encoding: utf-8
-"""
-@author: Yuxian Meng
-@contact: yuxian_meng@shannonai.com
-
-@version: 1.0
-@file: query_ner_config
-@time: 2020/9/6 22:18
-@desc: 
-
-"""
 
 
 from transformers import BertConfig

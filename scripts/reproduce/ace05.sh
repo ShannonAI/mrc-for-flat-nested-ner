@@ -34,4 +34,4 @@ python trainer.py \
 --warmup_steps $WARMUP \
 --max_length $MAXLEN \
 --gradient_clip_val $MAXNORM \
---optimizer "sgd"
+--optimizer "adamw"

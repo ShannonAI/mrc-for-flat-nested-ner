@@ -1,14 +1,4 @@
 # encoding: utf-8
-"""
-@author: Yuxian Meng
-@contact: yuxian_meng@shannonai.com
-
-@version: 1.0
-@file: collate_functions
-@time: 2020/9/12 14:21
-@desc: 
-
-"""
 
 import torch
 from typing import List

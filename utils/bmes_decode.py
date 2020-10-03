@@ -1,14 +1,4 @@
 # encoding: utf-8
-"""
-@author: Yuxian Meng
-@contact: yuxian_meng@shannonai.com
-
-@version: 1.0
-@file: bmes_decode
-@time: 2020/9/8 10:55
-@desc: 
-
-"""
 
 
 from typing import Tuple, List

@@ -1,14 +1,4 @@
 # encoding: utf-8
-"""
-@author: Yuxian Meng
-@contact: yuxian_meng@shannonai.com
-
-@version: 1.0
-@file: TruncateDatset
-@time: 2020/7/3 17:48
-
-    Truncate Datset, mostly used for debug
-"""
 
 from torch.utils.data import Dataset
 

@@ -1,14 +1,5 @@
 # encoding: utf-8
-"""
-@author: Yuxian Meng
-@contact: yuxian_meng@shannonai.com
 
-@version: 1.0
-@file: bert_query_ner
-@time: 2020/9/6 17:01
-@desc: 
-
-"""
 
 import torch
 import torch.nn as nn

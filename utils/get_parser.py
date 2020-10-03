@@ -1,13 +1,5 @@
 # encoding: utf-8
-"""
-@author: Yuxian Meng
-@contact: yuxian_meng@shannonai.com
 
-@version: 1.0
-@file: get_parser
-@time: 2020/7/9 15:48
-
-"""
 
 import argparse
 

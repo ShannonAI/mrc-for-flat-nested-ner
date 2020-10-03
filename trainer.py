@@ -1,14 +1,4 @@
 # encoding: utf-8
-"""
-@author: Yuxian Meng
-@contact: yuxian_meng@shannonai.com
-
-@version: 1.0
-@file: trainer
-@time: 2020/9/6 14:26
-@desc: pytorch-lightning trainer
-
-"""
 
 
 import argparse

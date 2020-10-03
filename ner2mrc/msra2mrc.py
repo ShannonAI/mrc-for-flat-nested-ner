@@ -1,14 +1,5 @@
 # encoding: utf-8
-"""
-@author: Yuxian Meng
-@contact: yuxian_meng@shannonai.com
 
-@version: 1.0
-@file: msra2mrc
-@time: 2020/9/9 20:56
-@desc: Convert MSRA raw data to MRC format
-
-"""
 
 import os
 from utils.bmes_decode import bmes_decode

@@ -1,14 +1,4 @@
 # encoding: utf-8
-"""
-@author: Yuxian Meng
-@contact: yuxian_meng@shannonai.com
-
-@version: 1.0
-@file: genia2mrc.py
-@time: 2020/9/12 20:19
-@desc: 
-
-"""
 
 
 import os

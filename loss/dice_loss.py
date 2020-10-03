@@ -1,14 +1,4 @@
 # encoding: utf-8
-"""
-@author: Yuxian Meng
-@contact: yuxian_meng@shannonai.com
-
-@version: 1.0
-@file: dice_loss
-@time: 2020/9/9 10:55
-@desc: todo
-
-"""
 
 
 import torch

@@ -1,14 +1,4 @@
 # encoding: utf-8
-"""
-@author: Yuxian Meng
-@contact: yuxian_meng@shannonai.com
-
-@version: 1.0
-@file: classifier
-@time: 2020/9/6 17:02
-@desc: 
-
-"""
 
 
 import torch.nn as nn

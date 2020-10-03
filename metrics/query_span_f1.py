@@ -1,14 +1,4 @@
 # encoding: utf-8
-"""
-@author: Yuxian Meng
-@contact: yuxian_meng@shannonai.com
-
-@version: 1.0
-@file: query_span_f1
-@time: 2020/9/7 20:40
-@desc: 
-
-"""
 
 
 from pytorch_lightning.metrics.metric import TensorMetric
