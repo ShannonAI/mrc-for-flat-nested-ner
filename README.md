@@ -43,12 +43,4 @@ dataset path, bert model path and log path, respectively.
 `trainer.py` will automatically evaluate on dev set every `val_check_interval` epochs,
 and save the topk checkpoints to `default_root_dir`.
 
-To evaluate them, use `evluate.py`
-
-
-
-
-## todo:
-1. use warmup
-1. use MLP for start/end prediction
-1. add sliding window
+To evaluate them, use `evaluate.py`
