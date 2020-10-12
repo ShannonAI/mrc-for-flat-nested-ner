@@ -1,4 +1,4 @@
 torch
-pytorch-lightning
+pytorch-lightning==0.9.0
 tokenizers
 transformers
