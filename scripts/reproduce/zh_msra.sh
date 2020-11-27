@@ -27,6 +27,5 @@ python trainer.py \
 --default_root_dir $OUTPUT_DIR \
 --mrc_dropout $DROPOUT \
 --max_epochs 20 \
---hard_span_only \
 --weight_span $SPAN_WEIGHT \
 --span_loss_candidates "pred_and_gold"

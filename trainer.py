@@ -292,7 +292,7 @@ class BertLabeling(pl.LightningModule):
         json_path = os.path.join(self.data_dir, f"mrc-ner.{prefix}")
         vocab_path = os.path.join(self.bert_dir, "vocab.txt")
         dataset = MRCNERDataset(json_path=json_path,
-                                tokenizer=BertWordPieceTokenizer(vocab_file=vocab_path),
+                                tokenizer=BertWordPieceTokenizer(vocab_path),
                                 max_length=self.args.max_length,
                                 is_chinese=self.chinese,
                                 pad_to_maxlen=False
