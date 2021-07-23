@@ -1,6 +1,5 @@
 # encoding: utf-8
 
-
 import argparse
 import os
 from collections import namedtuple
@@ -95,10 +94,9 @@ class BertLabeling(pl.LightningModule):
                             help="is chinese dataset")
         parser.add_argument("--loss_type", choices=["bce", "dice"], default="bce",
                             help="loss type")
-        parser.add_argument("--optimizer", choices=["adamw", "sgd"], default="adamw",
+        parser.add_argument("--optimizer", choices=["adamw", "sgd", "torch.adam"], default="adamw",
                             help="loss type")
-        parser.add_argument("--dice_smooth", type=float, default=1e-8,
-                            help="smooth value of dice loss")
+        parser.add_argument("--dice_smooth", type=float, default=1e-8, help="smooth value of dice loss")
         parser.add_argument("--final_div_factor", type=float, default=1e4,
                             help="final div factor of linear decay scheduler")
         return parser
@@ -121,6 +119,11 @@ class BertLabeling(pl.LightningModule):
                               betas=(0.9, 0.98),  # according to RoBERTa paper
                               lr=self.args.lr,
                               eps=self.args.adam_epsilon,)
+        elif self.optimizer == "torch.adam":
+            optimizer = torch.optim.AdamW(optimizer_grouped_parameters,
+                                          lr=self.args.lr,
+                                          eps=self.args.adam_epsilon,
+                                          weight_decay=self.args.weight_decay)
         else:
             optimizer = SGD(optimizer_grouped_parameters, lr=self.args.lr, momentum=0.9)
         num_gpus = len([x for x in str(self.args.gpus).split(",") if x.strip()])
