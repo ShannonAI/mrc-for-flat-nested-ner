@@ -4,6 +4,7 @@ ZH:
 - [OntoNotes4](https://drive.google.com/file/d/1CRVgZJDDGuj0O1NLK5DgujQBTLKyMR-g/view?usp=sharing)
 
 EN:
-- [CoNLL03](https://drive.google.com/file/d/1COt5bSHgwfl3oIZ6sCBVAenJKlfy3LI_/view?usp=sharing)
-- [ACE2004](https://drive.google.com/file/d/1zxLjecKK7CeLjxvPa-9QU9xsRJTVI5vb/view?usp=sharing)
-- [ACE2005](https://drive.google.com/file/d/1yxfwlrBmYIECqL_4K5xRve-pfBeIt58z/view?usp=sharing)
+- [CoNLL03](https://drive.google.com/file/d/1mGO9CYkgXsV-Et-hSZpOmS0m9G8A5mau/view?usp=sharing)
+- [ACE2004](https://drive.google.com/file/d/1U-hGOgLmdqudsRdKIGles1-QrNJ7SSg6/view?usp=sharing)
+- [ACE2005](https://drive.google.com/file/d/1iodaJ92dTAjUWnkMyYm8aLEi5hj3cseY/view?usp=sharing)
+- [GENIA](https://drive.google.com/file/d/1oF1P8s-0MN9X1M1PlKB2c5aBtxhmoxXb/view?usp=sharing)
