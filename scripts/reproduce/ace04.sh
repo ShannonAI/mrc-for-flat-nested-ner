@@ -14,7 +14,7 @@ MAXNORM=1.0
 OUTPUT_DIR="/userhome/xiaoya/outputs/mrc-ner/ace2004/large_lr${LR}_drop${MRC_DROPOUT}_norm${MAXNORM}_weight${SPAN_WEIGHT}_warmup${WARMUP}_maxlen${MAXLEN}"
 mkdir -p $OUTPUT_DIR
 
-python ${REPO_PATH}/trainer.py \
+nohup python ${REPO_PATH}/trainer.py \
 --data_dir $DATA_DIR \
 --bert_config_dir $BERT_DIR \
 --max_length $MAXLEN \
@@ -34,4 +34,4 @@ python ${REPO_PATH}/trainer.py \
 --weight_span $SPAN_WEIGHT \
 --warmup_steps $WARMUP \
 --max_length $MAXLEN \
---gradient_clip_val $MAXNORM
+--gradient_clip_val $MAXNORM > ${OUTPUT_DIR}/train_log.txt & tail -f ${OUTPUT_DIR}/train_log.txt

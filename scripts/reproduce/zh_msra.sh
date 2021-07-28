@@ -7,11 +7,11 @@ DROPOUT=0.2
 LR=8e-6
 MAXLEN=128
 
-OUTPUT_DIR="/mnt/mrc/train_logs/zh_msra/zh_msra_bertlarge_lr${LR}20200913_dropout${DROPOUT}_bsz16_maxlen${MAXLEN}"
+OUTPUT_DIR="/mnt/mrc/train_logs/zh_msra/zh_msra_bertlarge_lr${LR}20200913_dropout${DROPOUT}_maxlen${MAXLEN}"
 
 mkdir -p $OUTPUT_DIR
 
-python trainer.py \
+nohup python trainer.py \
 --chinese \
 --data_dir $DATA_DIR \
 --bert_config_dir $BERT_DIR \
@@ -28,4 +28,4 @@ python trainer.py \
 --mrc_dropout $DROPOUT \
 --max_epochs 20 \
 --weight_span $SPAN_WEIGHT \
---span_loss_candidates "pred_and_gold"
+--span_loss_candidates "pred_and_gold" > ${OUTPUT_DIR}/train_log.txt & tail -f ${OUTPUT_DIR}/train_log.txt
