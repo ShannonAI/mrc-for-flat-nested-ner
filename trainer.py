@@ -57,16 +57,13 @@ class BertLabeling(pl.LightningModule):
 
         self.model = BertQueryNER.from_pretrained(args.bert_config_dir,
                                                   config=bert_config)
-        # logging.info(str(self.model))
         logging.info(str(args.__dict__ if isinstance(args, argparse.ArgumentParser) else args))
-        # self.ce_loss = CrossEntropyLoss(reduction="none")
         self.loss_type = args.loss_type
-        # self.loss_type = "bce"
         if self.loss_type == "bce":
             self.bce_loss = BCEWithLogitsLoss(reduction="none")
         else:
             self.dice_loss = DiceLoss(with_logits=True, smooth=args.dice_smooth)
-        # todo(yuxian): 由于match loss是n^2的，应该特殊调整一下loss rate
+
         weight_sum = args.weight_start + args.weight_end + args.weight_span
         self.weight_start = args.weight_start / weight_sum
         self.weight_end = args.weight_end / weight_sum
@@ -136,7 +133,6 @@ class BertLabeling(pl.LightningModule):
         return [optimizer], [{"scheduler": scheduler, "interval": "step"}]
 
     def forward(self, input_ids, attention_mask, token_type_ids):
-        """"""
         return self.model(input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids)
 
     def compute_loss(self, start_logits, end_logits, span_logits,
@@ -278,14 +274,12 @@ class BertLabeling(pl.LightningModule):
 
     def train_dataloader(self) -> DataLoader:
         return self.get_dataloader("train")
-        # return self.get_dataloader("dev", 100)
 
     def val_dataloader(self):
         return self.get_dataloader("dev")
 
     def test_dataloader(self):
         return self.get_dataloader("test")
-        # return self.get_dataloader("dev")
 
     def get_dataloader(self, prefix="train", limit: int = None) -> DataLoader:
         """get training dataloader"""
@@ -385,5 +379,4 @@ def main():
 
 
 if __name__ == '__main__':
-    # run_dataloader()
     main()
