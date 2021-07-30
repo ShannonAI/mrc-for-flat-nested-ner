@@ -14,7 +14,7 @@ MAXNORM=1.0
 OUTPUT_DIR="/userhome/xiaoya/outputs/github_mrc/genia/large_lr${LR}_drop${MRC_DROPOUT}_norm${MAXNORM}_bsz32_hard_span_weight${SPAN_WEIGHT}_warmup${WARMUP}_maxlen${MAXLEN}"
 mkdir -p $OUTPUT_DIR
 
-python ${REPO_PATH}/trainer.py \
+nohup python ${REPO_PATH}/trainer.py \
 --data_dir $DATA_DIR \
 --bert_config_dir $BERT_DIR \
 --max_length $MAXLEN \
@@ -35,4 +35,4 @@ python ${REPO_PATH}/trainer.py \
 --warmup_steps $WARMUP \
 --max_length $MAXLEN \
 --gradient_clip_val $MAXNORM \
---weight_decay 0.002
+--weight_decay 0.002 > ${OUTPUT_DIR}/train_log.txt & tail -f ${OUTPUT_DIR}/train_log.txt

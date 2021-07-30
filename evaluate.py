@@ -1,16 +1,19 @@
-# encoding: utf-8
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
+# file: evaluate.py
+# example command:
+# python3 evaluate.py /data/xiaoya/outputs/mrc_ner/ace2004/debug_lr3e-5_drop0.3_norm1.0_weight0.1_warmup0_maxlen100/epoch=0.ckpt \
+# /data/xiaoya/outputs/mrc_ner/ace2004/debug_lr3e-5_drop0.3_norm1.0_weight0.1_warmup0_maxlen100/lightning_logs/version_2/hparams.yaml
 
-import os
+import sys
 from pytorch_lightning import Trainer
-
 from trainer import BertLabeling
+from utils.radom_seed import set_random_seed
+set_random_seed(0)
 
-
-def evaluate(ckpt, hparams_file):
-    """main"""
-
-    trainer = Trainer(gpus=[0, 1], distributed_backend="ddp")
+def evaluate(ckpt, hparams_file, gpus=[0, 1]):
+    trainer = Trainer(gpus=gpus, distributed_backend="dp")
 
     model = BertLabeling.load_from_checkpoint(
         checkpoint_path=ckpt,
@@ -24,23 +27,15 @@ def evaluate(ckpt, hparams_file):
 
 
 if __name__ == '__main__':
-    # ace04
-    HPARAMS = "/mnt/mrc/train_logs/ace2004/ace2004_20200911reproduce_epoch15_lr3e-5_drop0.3_norm1.0_bsz32_hard_span_weight0.1_warmup0_maxlen128_newtrunc_debug/lightning_logs/version_0/hparams.yaml"
-    CHECKPOINTS = "/mnt/mrc/train_logs/ace2004/ace2004_20200911reproduce_epoch15_lr3e-5_drop0.3_norm1.0_bsz32_hard_span_weight0.1_warmup0_maxlen128_newtrunc_debug/epoch=10_v0.ckpt"
-    # DIR = "/mnt/mrc/train_logs/ace2004/ace2004_20200910_lr3e-5_drop0.3_bert0.1_bsz32_hard_loss_bce_weight_span0.05"
-    # CHECKPOINTS = [os.path.join(DIR, x) for x in os.listdir(DIR)]
+    # example of running evaluate.py
+    # CHECKPOINTS = "/mnt/mrc/train_logs/zh_msra/zh_msra_20200911_for_flat_debug/epoch=2_v1.ckpt"
+    # HPARAMS = "/mnt/mrc/train_logs/zh_msra/zh_msra_20200911_for_flat_debug/lightning_logs/version_2/hparams.yaml"
+    # GPUS="1,2,3"
+    CHECKPOINTS = sys.argv[1]
+    HPARAMS = sys.argv[2]
+    try:
+        GPUS = [int(gpu_item) for gpu_item in sys.argv[3].strip().split(",")]
+    except:
+        GPUS = [0, 1]
 
-    # ace04-large
-    HPARAMS = "/mnt/mrc/train_logs/ace2004/ace2004_20200910reproduce_lr3e-5_drop0.3_norm1.0_bsz32_hard_span_weight0.1_warmup0_maxlen128_newtrunc_debug/lightning_logs/version_2/hparams.yaml"
-    CHECKPOINTS = "/mnt/mrc/train_logs/ace2004/ace2004_20200910reproduce_lr3e-5_drop0.3_norm1.0_bsz32_hard_span_weight0.1_warmup0_maxlen128_newtrunc_debug/epoch=10.ckpt"
-
-    # ace05
-    # HPARAMS = "/mnt/mrc/train_logs/ace2005/ace2005_20200911_lr3e-5_drop0.3_norm1.0_bsz32_hard_span_weight0.1_warmup0_maxlen128_newtrunc_debug/lightning_logs/version_0/hparams.yaml"
-    # CHECKPOINTS = "/mnt/mrc/train_logs/ace2005/ace2005_20200911_lr3e-5_drop0.3_norm1.0_bsz32_hard_span_weight0.1_warmup0_maxlen128_newtrunc_debug/epoch=15.ckpt"
-
-    # zh_msra
-    CHECKPOINTS = "/mnt/mrc/train_logs/zh_msra/zh_msra_20200911_for_flat_debug/epoch=2_v1.ckpt"
-    HPARAMS = "/mnt/mrc/train_logs/zh_msra/zh_msra_20200911_for_flat_debug/lightning_logs/version_2/hparams.yaml"
-
-
-    evaluate(ckpt=CHECKPOINTS, hparams_file=HPARAMS)
+    evaluate(ckpt=CHECKPOINTS, hparams_file=HPARAMS, gpus=GPUS)

@@ -41,8 +41,6 @@ def bmes_decode(char_label_list: List[Tuple[str, str]]) -> List[Tag]:
         current_label = label[0]
 
         # correct labels
-        if current_label in ["M", "E"]:
-            current_label = "B"
         if idx + 1 == length and current_label == "B":
             current_label = "S"
 

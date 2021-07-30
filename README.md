@@ -16,7 +16,12 @@ If you find this repo helpful, please cite the following:
 For any question, please feel free to post Github issues.<br>
 
 ## Install Requirements
-`pip install -r requirements.txt`
+
+* The code requires Python 3.6+.
+
+* If you are working on a GPU machine with CUDA 10.1, please run `pip install torch==1.7.1+cu101 torchvision==0.8.2+cu101 torchaudio==0.7.2 -f https://download.pytorch.org/whl/torch_stable.html` to install PyTorch. If not, please see the [PyTorch Official Website](https://pytorch.org/) for instructions.
+
+* Then run the following script to install the remaining dependenices: `pip install -r requirements.txt`
 
 We build our project on [pytorch-lightning.](https://github.com/PyTorchLightning/pytorch-lightning)
 If you want to know more about the arguments used in our training scripts, please 
@@ -34,13 +39,19 @@ For Chinese Datasets, we use [RoBERTa-wwm-ext-large](https://github.com/ymcui/Ch
 ## Train
 The main training procedure is in `trainer.py`
 
-Examples to start training are in `scripts/reproduce`.
-
-Note that you may need to change `DATA_DIR`, `BERT_DIR`, `OUTPUT_DIR` to your own
-dataset path, bert model path and log path, respectively.
+Scripts for reproducing our experimental results can be found in the `./scripts/reproduce/` folder. 
+Note that you need to change `DATA_DIR`, `BERT_DIR`, `OUTPUT_DIR` to your own dataset path, bert model path and log path, respectively.  <br> 
+For example, run `./scripts/reproduce/ace04.sh` will start training MRC-NER models and save intermediate log to `$OUTPUT_DIR/train_log.txt`. <br> 
+During training, the model trainer will automatically evaluate on the dev set every `val_check_interval` epochs,
+and save the topk checkpoints to `$OUTPUT_DIR`. <br> 
 
 ## Evaluate
-`trainer.py` will automatically evaluate on dev set every `val_check_interval` epochs,
-and save the topk checkpoints to `default_root_dir`.
 
-To evaluate them, use `evaluate.py`
+After training, you can find the best checkpoint on the dev set according to the evaluation results in `$OUTPUT_DIR/train_log.txt`. <br> 
+Then run `python3 evaluate.py $OUTPUT_DIR/<best_ckpt_on_dev>.ckpt  $OUTPUT_DIR/lightning_logs/<version_0/hparams.yaml>` to evaluate on the test set with the best checkpoint chosen on dev. 
+
+## Inference 
+
+Code for inference using the trained MRC-NER model can be found in `inference.py` file. <br>
+For flat NER, we provide the inference script in [flat_inference.sh](./scripts/flat_inference.sh) <br>
+For nested NER, we provide the inference script in [nested_inference.sh](./scripts/nested_inference.sh) 

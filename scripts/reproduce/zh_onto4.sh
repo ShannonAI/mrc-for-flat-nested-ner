@@ -9,10 +9,10 @@ MAXLENGTH=128
 WEIGHT_SPAN=0.1
 lr=1e-5
 OPTIMIZER="adamw"
-OUTPUT_DIR="/userhome/yuxian/train_logs/zh_onto/zh_onto_20200926_opt_${OPTIMIZER}_lr${lr}_maxlen${MAXLENGTH}_spanw${WEIGHT_SPAN}"
+OUTPUT_DIR="/userhome/yuxian/train_logs/zh_onto/zh_onto_${OPTIMIZER}_lr${lr}_maxlen${MAXLENGTH}_spanw${WEIGHT_SPAN}"
 mkdir -p $OUTPUT_DIR
 
-python trainer.py \
+nohup python trainer.py \
 --data_dir $DATA_DIR \
 --bert_config_dir $BERT_DIR \
 --max_length $MAXLENGTH \
@@ -33,4 +33,4 @@ python trainer.py \
 --mrc_dropout 0.3 \
 --warmup_steps 5000 \
 --gradient_clip_val 5.0 \
---final_div_factor 20
+--final_div_factor 20 > ${OUTPUT_DIR}/train_log.txt & tail -f ${OUTPUT_DIR}/train_log.txt

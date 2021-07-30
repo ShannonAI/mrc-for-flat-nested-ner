@@ -13,12 +13,9 @@ class BertQueryNER(BertPreTrainedModel):
         super(BertQueryNER, self).__init__(config)
         self.bert = BertModel(config)
 
-        # self.start_outputs = nn.Linear(config.hidden_size, 2)
-        # self.end_outputs = nn.Linear(config.hidden_size, 2)
         self.start_outputs = nn.Linear(config.hidden_size, 1)
         self.end_outputs = nn.Linear(config.hidden_size, 1)
         self.span_embedding = MultiNonLinearClassifier(config.hidden_size * 2, 1, config.mrc_dropout)
-        # self.span_embedding = SingleLinearClassifier(config.hidden_size * 2, 1)
 
         self.hidden_size = config.hidden_size
 
