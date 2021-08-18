@@ -1,4 +1,6 @@
-# encoding: utf-8
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 
 import argparse
 import os
@@ -22,7 +24,6 @@ from datasets.collate_functions import collate_to_max_length
 from metrics.query_span_f1 import QuerySpanF1
 from models.bert_query_ner import BertQueryNER
 from models.query_ner_config import BertQueryNerConfig
-from loss import *
 from utils.get_parser import get_parser
 from utils.radom_seed import set_random_seed
 import logging
@@ -31,8 +32,6 @@ set_random_seed(0)
 
 
 class BertLabeling(pl.LightningModule):
-    """MLM Trainer"""
-
     def __init__(
         self,
         args: argparse.Namespace
@@ -58,11 +57,7 @@ class BertLabeling(pl.LightningModule):
         self.model = BertQueryNER.from_pretrained(args.bert_config_dir,
                                                   config=bert_config)
         logging.info(str(args.__dict__ if isinstance(args, argparse.ArgumentParser) else args))
-        self.loss_type = args.loss_type
-        if self.loss_type == "bce":
-            self.bce_loss = BCEWithLogitsLoss(reduction="none")
-        else:
-            self.dice_loss = DiceLoss(with_logits=True, smooth=args.dice_smooth)
+        self.bce_loss = BCEWithLogitsLoss(reduction="none")
 
         weight_sum = args.weight_start + args.weight_end + args.weight_span
         self.weight_start = args.weight_start / weight_sum
@@ -89,11 +84,8 @@ class BertLabeling(pl.LightningModule):
                             default="all", help="Candidates used to compute span loss")
         parser.add_argument("--chinese", action="store_true",
                             help="is chinese dataset")
-        parser.add_argument("--loss_type", choices=["bce", "dice"], default="bce",
-                            help="loss type")
         parser.add_argument("--optimizer", choices=["adamw", "sgd", "torch.adam"], default="adamw",
                             help="loss type")
-        parser.add_argument("--dice_smooth", type=float, default=1e-8, help="smooth value of dice loss")
         parser.add_argument("--final_div_factor", type=float, default=1e4,
                             help="final div factor of linear decay scheduler")
         return parser
@@ -165,18 +157,14 @@ class BertLabeling(pl.LightningModule):
                 )
             match_label_mask = match_label_mask & match_candidates
             float_match_label_mask = match_label_mask.view(batch_size, -1).float()
-        if self.loss_type == "bce":
-            start_loss = self.bce_loss(start_logits.view(-1), start_labels.view(-1).float())
-            start_loss = (start_loss * start_float_label_mask).sum() / start_float_label_mask.sum()
-            end_loss = self.bce_loss(end_logits.view(-1), end_labels.view(-1).float())
-            end_loss = (end_loss * end_float_label_mask).sum() / end_float_label_mask.sum()
-            match_loss = self.bce_loss(span_logits.view(batch_size, -1), match_labels.view(batch_size, -1).float())
-            match_loss = match_loss * float_match_label_mask
-            match_loss = match_loss.sum() / (float_match_label_mask.sum() + 1e-10)
-        else:
-            start_loss = self.dice_loss(start_logits, start_labels.float(), start_float_label_mask)
-            end_loss = self.dice_loss(end_logits, end_labels.float(), end_float_label_mask)
-            match_loss = self.dice_loss(span_logits, match_labels.float(), float_match_label_mask)
+
+        start_loss = self.bce_loss(start_logits.view(-1), start_labels.view(-1).float())
+        start_loss = (start_loss * start_float_label_mask).sum() / start_float_label_mask.sum()
+        end_loss = self.bce_loss(end_logits.view(-1), end_labels.view(-1).float())
+        end_loss = (end_loss * end_float_label_mask).sum() / end_float_label_mask.sum()
+        match_loss = self.bce_loss(span_logits.view(batch_size, -1), match_labels.view(batch_size, -1).float())
+        match_loss = match_loss * float_match_label_mask
+        match_loss = match_loss.sum() / (float_match_label_mask.sum() + 1e-10)
 
         return start_loss, end_loss, match_loss
 

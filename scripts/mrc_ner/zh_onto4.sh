@@ -1,7 +1,12 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# -*- coding: utf-8 -*-
 
-export PYTHONPATH="$PWD"
+# file: zh_onto4.sh
+
+REPO_PATH=/userhome/xiaoya/mrc-for-flat-nested-ner
+export PYTHONPATH="$PYTHONPATH:$REPO_PATH"
 export TOKENIZERS_PARALLELISM=false
+
 DATA_DIR="/userhome/yuxian/data/zh_onto4"
 BERT_DIR="/userhome/yuxian/data/chinese_roberta_wwm_large_ext_pytorch"
 
@@ -12,7 +17,7 @@ OPTIMIZER="adamw"
 OUTPUT_DIR="/userhome/yuxian/train_logs/zh_onto/zh_onto_${OPTIMIZER}_lr${lr}_maxlen${MAXLENGTH}_spanw${WEIGHT_SPAN}"
 mkdir -p $OUTPUT_DIR
 
-nohup python trainer.py \
+nohup python ${REPO_PATH}/train/mrc_ner_trainer.py \
 --data_dir $DATA_DIR \
 --bert_config_dir $BERT_DIR \
 --max_length $MAXLENGTH \

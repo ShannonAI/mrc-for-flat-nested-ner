@@ -15,7 +15,7 @@ MODEL_CKPT=/data/xiaoya/outputs/mrc_ner/conll03/large_lr3e-5_drop0.3_norm1.0_wei
 HPARAMS_FILE=/data/xiaoya/outputs/mrc_ner/conll03/large_lr3e-5_drop0.3_norm1.0_weight0.1_warmup0_maxlen180/lightning_logs/version_0/hparams.yaml
 
 
-python3 ${REPO_PATH}/inference.py \
+python3 ${REPO_PATH}/inference/mrc_ner_inference.py \
 --data_dir ${DATA_DIR} \
 --bert_dir ${BERT_DIR} \
 --max_length ${MAX_LEN} \

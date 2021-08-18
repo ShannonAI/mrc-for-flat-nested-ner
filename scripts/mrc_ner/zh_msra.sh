@@ -1,5 +1,12 @@
-export PYTHONPATH="$PWD"
+#!/usr/bin/env bash
+# -*- coding: utf-8 -*-
+
+# file: zh_msra.sh
+
+REPO_PATH=/userhome/xiaoya/mrc-for-flat-nested-ner
+export PYTHONPATH="$PYTHONPATH:$REPO_PATH"
 export TOKENIZERS_PARALLELISM=false
+
 DATA_DIR="/mnt/mrc/zh_msra"
 BERT_DIR="/mnt/mrc/chinese_roberta_wwm_large_ext_pytorch"
 SPAN_WEIGHT=0.1
@@ -11,7 +18,7 @@ OUTPUT_DIR="/mnt/mrc/train_logs/zh_msra/zh_msra_bertlarge_lr${LR}20200913_dropou
 
 mkdir -p $OUTPUT_DIR
 
-nohup python trainer.py \
+nohup python ${REPO_PATH}/train/mrc_ner_trainer.py \
 --chinese \
 --data_dir $DATA_DIR \
 --bert_config_dir $BERT_DIR \

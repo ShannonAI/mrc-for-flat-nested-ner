@@ -1,8 +1,13 @@
-REPO_PATH=/userhome/xiaoya/github_mrc
+#!/usr/bin/env bash
+# -*- coding: utf-8 -*-
+
+# file: genia.sh
+
+REPO_PATH=/userhome/xiaoya/mrc-for-flat-nested-ner
 export PYTHONPATH="$PYTHONPATH:$REPO_PATH"
+
 DATA_DIR=/userhome/xiaoya/dataset/genia
 BERT_DIR=/userhome/xiaoya/bert/bert_cased_large
-
 BERT_DROPOUT=0.2
 MRC_DROPOUT=0.2
 LR=2e-5
@@ -14,7 +19,7 @@ MAXNORM=1.0
 OUTPUT_DIR="/userhome/xiaoya/outputs/github_mrc/genia/large_lr${LR}_drop${MRC_DROPOUT}_norm${MAXNORM}_bsz32_hard_span_weight${SPAN_WEIGHT}_warmup${WARMUP}_maxlen${MAXLEN}"
 mkdir -p $OUTPUT_DIR
 
-nohup python ${REPO_PATH}/trainer.py \
+nohup python ${REPO_PATH}/train/mrc_ner_trainer.py \
 --data_dir $DATA_DIR \
 --bert_config_dir $BERT_DIR \
 --max_length $MAXLEN \

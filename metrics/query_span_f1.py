@@ -2,7 +2,7 @@
 
 
 from pytorch_lightning.metrics.metric import TensorMetric
-from .functional.query_span_f1 import query_span_f1
+from metrics.functional.query_span_f1 import query_span_f1
 
 
 class QuerySpanF1(TensorMetric):

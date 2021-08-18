@@ -37,21 +37,21 @@ For English Datasets, we use [BERT-Large](https://github.com/google-research/ber
 For Chinese Datasets, we use [RoBERTa-wwm-ext-large](https://github.com/ymcui/Chinese-BERT-wwm)
 
 ## Train
-The main training procedure is in `trainer.py`
+The main training procedure is in `train/mrc_ner_trainer.py`
 
-Scripts for reproducing our experimental results can be found in the `./scripts/reproduce/` folder. 
+Scripts for reproducing our experimental results can be found in the `./scripts/mrc_ner/` folder. 
 Note that you need to change `DATA_DIR`, `BERT_DIR`, `OUTPUT_DIR` to your own dataset path, bert model path and log path, respectively.  <br> 
-For example, run `./scripts/reproduce/ace04.sh` will start training MRC-NER models and save intermediate log to `$OUTPUT_DIR/train_log.txt`. <br> 
+For example, run `./scripts/mrc_ner/ace04.sh` will start training MRC-NER models and save intermediate log to `$OUTPUT_DIR/train_log.txt`. <br> 
 During training, the model trainer will automatically evaluate on the dev set every `val_check_interval` epochs,
 and save the topk checkpoints to `$OUTPUT_DIR`. <br> 
 
 ## Evaluate
 
 After training, you can find the best checkpoint on the dev set according to the evaluation results in `$OUTPUT_DIR/train_log.txt`. <br> 
-Then run `python3 evaluate.py $OUTPUT_DIR/<best_ckpt_on_dev>.ckpt  $OUTPUT_DIR/lightning_logs/<version_0/hparams.yaml>` to evaluate on the test set with the best checkpoint chosen on dev. 
+Then run `python3 evaluate/mrc_ner_evaluate.py $OUTPUT_DIR/<best_ckpt_on_dev>.ckpt  $OUTPUT_DIR/lightning_logs/<version_0/hparams.yaml>` to evaluate on the test set with the best checkpoint chosen on dev. 
 
 ## Inference 
 
-Code for inference using the trained MRC-NER model can be found in `inference.py` file. <br>
-For flat NER, we provide the inference script in [flat_inference.sh](./scripts/flat_inference.sh) <br>
-For nested NER, we provide the inference script in [nested_inference.sh](./scripts/nested_inference.sh) 
+Code for inference using the trained MRC-NER model can be found in `inference/mrc_ner_inference.py` file. <br>
+For flat NER, we provide the inference script in [flat_inference.sh](./scripts/mrc_ner/flat_inference.sh) <br>
+For nested NER, we provide the inference script in [nested_inference.sh](./scripts/mrc_ner/nested_inference.sh) 

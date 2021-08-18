@@ -1,5 +1,11 @@
-REPO_PATH=/userhome/xiaoya/github_mrc
+#!/usr/bin/env bash
+# -*- coding: utf-8 -*-
+
+# file: ace05.sh
+
+REPO_PATH=/userhome/xiaoya/mrc-for-flat-nested-ner
 export PYTHONPATH="$PYTHONPATH:$REPO_PATH"
+
 DATA_DIR=/userhome/xiaoya/dataset/ace2005
 BERT_DIR=/userhome/xiaoya/bert/uncased_L-24_H-1024_A-16
 
@@ -14,7 +20,7 @@ MAXNORM=1.0
 OUTPUT_DIR="/userhome/xiaoya/outputs/mrc-ner/ace2005/large_${WARMUP}lr${LR}_drop${MRC_DROPOUT}_norm${MAXNORM}_weight${SPAN_WEIGHT}_warmup${WARMUP}_maxlen${MAXLEN}"
 mkdir -p $OUTPUT_DIR
 
-nohup python ${REPO_PATH}/trainer.py \
+nohup python ${REPO_PATH}/train/mrc_ner_trainer.py \
 --data_dir $DATA_DIR \
 --bert_config_dir $BERT_DIR \
 --max_length $MAXLEN \

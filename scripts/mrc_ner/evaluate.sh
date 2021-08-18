@@ -12,4 +12,4 @@ BEST_CKPT_DEV=${OUTPUT_DIR}/epoch=8.ckpt
 PYTORCHLIGHT_HPARAMS=${OUTPUT_DIR}/version_0/hparams.yaml
 GPU_ID=0,1
 
-python3 ${REPO_PATH}/evaluate.py ${BEST_CKPT_DEV} ${PYTORCHLIGHT_HPARAMS} ${GPU_ID}
+python3 ${REPO_PATH}/evaluate/mrc_ner_evaluate.py ${BEST_CKPT_DEV} ${PYTORCHLIGHT_HPARAMS} ${GPU_ID}
