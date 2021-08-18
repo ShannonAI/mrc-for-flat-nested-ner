@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# file: mrc_ner_trainer.py
 
 import argparse
 import os
@@ -23,7 +24,7 @@ from datasets.truncate_dataset import TruncateDataset
 from datasets.collate_functions import collate_to_max_length
 from metrics.query_span_f1 import QuerySpanF1
 from models.bert_query_ner import BertQueryNER
-from models.query_ner_config import BertQueryNerConfig
+from models.model_config import BertQueryNerConfig
 from utils.get_parser import get_parser
 from utils.radom_seed import set_random_seed
 import logging
@@ -295,41 +296,6 @@ class BertLabeling(pl.LightningModule):
         )
 
         return dataloader
-
-
-def run_dataloader():
-    """test dataloader"""
-    parser = get_parser()
-
-    # add model specific args
-    parser = BertLabeling.add_model_specific_args(parser)
-
-    # add all the available trainer options to argparse
-    # ie: now --gpus --num_nodes ... --fast_dev_run all work in the cli
-    parser = Trainer.add_argparse_args(parser)
-
-    args = parser.parse_args()
-    args.workers = 0
-    args.default_root_dir = "/mnt/data/mrc/train_logs/debug"
-
-    model = BertLabeling(args)
-    from tokenizers import BertWordPieceTokenizer
-    tokenizer = BertWordPieceTokenizer(os.path.join(args.bert_config_dir, "vocab.txt"))
-
-    loader = model.get_dataloader("dev", limit=1000)
-    for d in loader:
-        input_ids = d[0][0].tolist()
-        match_labels = d[-1][0]
-        start_positions, end_positions = torch.where(match_labels > 0)
-        start_positions = start_positions.tolist()
-        end_positions = end_positions.tolist()
-        if not start_positions:
-            continue
-        print("="*20)
-        print(tokenizer.decode(input_ids, skip_special_tokens=False))
-        for start, end in zip(start_positions, end_positions):
-            print(tokenizer.decode(input_ids[start: end+1]))
-
 
 def main():
     """main"""
