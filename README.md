@@ -39,9 +39,9 @@ For Chinese Datasets, we use [RoBERTa-wwm-ext-large](https://github.com/ymcui/Ch
 ## Train
 The main training procedure is in `train/mrc_ner_trainer.py`
 
-Scripts for reproducing our experimental results can be found in the `./scripts/mrc_ner/` folder. 
+Scripts for reproducing our experimental results can be found in the `./scripts/mrc_ner/reproduce/` folder. 
 Note that you need to change `DATA_DIR`, `BERT_DIR`, `OUTPUT_DIR` to your own dataset path, bert model path and log path, respectively.  <br> 
-For example, run `./scripts/mrc_ner/ace04.sh` will start training MRC-NER models and save intermediate log to `$OUTPUT_DIR/train_log.txt`. <br> 
+For example, run `./scripts/mrc_ner/reproduce/ace04.sh` will start training MRC-NER models and save intermediate log to `$OUTPUT_DIR/train_log.txt`. <br> 
 During training, the model trainer will automatically evaluate on the dev set every `val_check_interval` epochs,
 and save the topk checkpoints to `$OUTPUT_DIR`. <br> 
 
