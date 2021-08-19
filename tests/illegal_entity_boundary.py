@@ -96,7 +96,7 @@ def find_illegal_entity(model_path, is_chinese=True, do_lower_case=True):
         if "E-" in label_item:
             end_positions.append(label_idx)
 
-    print("origin entity tokens")
+    print("entity tokens before tokenizing ...")
     for start_item, end_item in zip(start_positions, end_positions):
         print(origin_tokens[start_item: end_item + 1])
 
@@ -135,7 +135,7 @@ def find_illegal_entity(model_path, is_chinese=True, do_lower_case=True):
     new_start_positions = [start_pos for start_pos in new_start_positions if start_pos < 500]
     new_end_positions = [end_pos for end_pos in new_end_positions if end_pos < 500]
 
-    print("print tokens :")
+    print("entity tokens after tokenizing ... ")
     for start_item, end_item in zip(new_start_positions, new_end_positions):
         print(tokenizer.convert_ids_to_tokens(query_context_tokens["input_ids"][start_item: end_item + 1]))
 
