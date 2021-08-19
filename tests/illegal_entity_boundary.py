@@ -4,7 +4,6 @@
 # file: illegal_entity_boundary.py
 
 from transformers import AutoTokenizer
-from tokenizers import BertWordPieceTokenizer
 
 def load_dataexamples(file_path, ):
     with open(file_path, "r") as f:
@@ -42,43 +41,13 @@ def find_data_instance(file_path, search_string):
             print(label_lst)
             print("=*"*10)
 
-def find_illegal_entity(model_path, is_chinese=True, do_lower_case=True):
-    tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=False, do_lower_case=do_lower_case)
-    query = "组织机构"
-    context_tokens = ['１', '美', '亚', '股', '份', '３', '２', '．', '６', '６', '２', '民', '族', '集', '团', '２', '２', '．', '３',
-                      '８', '３', '鲁', '石', '化', 'Ａ', '１', '９', '．', '１', '１', '４', '四', '川', '湖', '山', '１', '７', '．',
-                      '０', '９', '５', '太', '原', '刚', '玉', '１', '０', '．', '５', '８', '１', '咸', '阳', '偏', '转', '１', '６',
-                      '．', '１', '１', '２', '深', '华', '发', 'Ａ', '１', '５', '．', '６', '６', '３', '渝', '开', '发', 'Ａ', '１',
-                      '５', '．', '５', '２', '４', '深', '发', '展', 'Ａ', '１', '３', '．', '８', '９', '５', '深', '纺', '织', 'Ａ',
-                      '１', '３', '．', '２', '２', '１', '太', '极', '实', '业', '２', '３', '．', '２', '２', '２', '友', '好', '集',
-                      '团', '２', '２', '．', '１', '４', '３', '双', '虎', '涂', '料', '２', '０', '．', '２', '０', '４', '新', '潮',
-                      '实', '业', '１', '５', '．', '５', '８', '５', '信', '联', '股', '份', '１', '２', '．', '５', '７', '１', '氯',
-                      '碱', '化', '工', '２', '１', '．', '１', '７', '２', '百', '隆', '股', '份', '１', '５', '．', '６', '４', '３',
-                      '贵', '华', '旅', '业', '１', '５', '．', '１', '５', '４', '南', '洋', '实', '业', '１', '４', '．', '５', '０',
-                      '５', '福', '建', '福', '联', '１', '３', '．', '８', '０']
-    # context = "１美亚股份３２．６６２民族集团２２．３８３鲁石化Ａ１９．１１４四川湖山１７．０９５太原刚玉１０．５８１咸阳偏转１６．１１２深华发Ａ１５．６６３渝开发Ａ１５．５２４深发展Ａ１３．８９５深纺织Ａ１３．２２１太极实业２３．２２２友好集团２２．１４３双虎涂料２０．２０４新潮实业１５．５８５信联股份１２．５７１氯碱化工２１．１７２百隆股份１５．６４３贵华旅业１５．１５４南洋实业１４．５０５福建福联１３．８０"
-    context = "".join(context_tokens)
 
-    labels = ['O', 'B-NT', 'M-NT', 'M-NT', 'E-NT', 'O', 'O', 'O', 'O', 'O', 'O', 'B-NT', 'M-NT', 'M-NT', 'E-NT', 'O',
-              'O', 'O', 'O', 'O', 'O', 'B-NT', 'M-NT', 'M-NT', 'E-NT', 'O', 'O', 'O', 'O', 'O', 'O', 'B-NT', 'M-NT',
-              'M-NT', 'E-NT', 'O', \
-              'O', 'O', 'O', 'O', 'O', 'B-NT', 'M-NT', 'M-NT', 'E-NT', 'O', 'O', 'O', 'O', 'O', 'O', 'B-NT', 'M-NT',
-              'M-NT', \
-              'E-NT', 'O', 'O', 'O', 'O', 'O', 'O', 'B-NT', 'M-NT', 'M-NT', 'E-NT', 'O', 'O', 'O', 'O', 'O', 'O',
-              'B-NT', 'M-NT', \
-              'M-NT', 'E-NT', 'O', 'O', 'O', 'O', 'O', 'O', 'B-NT', 'M-NT', 'M-NT', 'E-NT', 'O', 'O', 'O', 'O', 'O',
-              'O', 'B-NT', \
-              'M-NT', 'M-NT', 'E-NT', 'O', 'O', 'O', 'O', 'O', 'O', 'B-NT', 'M-NT', 'M-NT', 'E-NT', 'O', 'O', 'O', 'O',
-              'O', 'O', \
-              'B-NT', 'M-NT', 'M-NT', 'E-NT', 'O', 'O', 'O', 'O', 'O', 'O', 'B-NT', 'M-NT', 'M-NT', 'E-NT', 'O', 'O',
-              'O', 'O', \
-              'O', 'O', 'B-NT', 'M-NT', 'M-NT', 'E-NT', 'O', 'O', 'O', 'O', 'O', 'O', 'B-NT', 'M-NT', 'M-NT', 'E-NT',
-              'O', 'O', \
-              'O', 'O', 'O', 'O', 'B-NT', 'M-NT', 'M-NT', 'E-NT', 'O', 'O', 'O', 'O', 'O', 'O', 'B-NT', 'M-NT', 'M-NT',
-              'E-NT', \
-              'O', 'O', 'O', 'O', 'O', 'O', 'B-NT', 'M-NT', 'M-NT', 'E-NT', 'O', 'O', 'O', 'O', 'O', 'O', 'B-NT',
-              'M-NT', 'M-NT', \
-              'E-NT', 'O', 'O', 'O', 'O', 'O', 'O', 'B-NT', 'M-NT', 'M-NT', 'E-NT', 'O', 'O', 'O', 'O', 'O']
+def find_illegal_entity(query, context_tokens, labels, model_path, is_chinese=True, do_lower_case=True):
+    tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=False, do_lower_case=do_lower_case)
+    if is_chinese:
+        context = "".join(context_tokens)
+    else:
+        context = " ".join(context_tokens)
 
     start_positions = []
     end_positions = []
@@ -96,13 +65,13 @@ def find_illegal_entity(model_path, is_chinese=True, do_lower_case=True):
         if "E-" in label_item:
             end_positions.append(label_idx)
 
-    print("entity tokens before tokenizing ...")
+    print("origin entity tokens")
     for start_item, end_item in zip(start_positions, end_positions):
         print(origin_tokens[start_item: end_item + 1])
 
     query_context_tokens = tokenizer.encode_plus(query, context,
                                                  add_special_tokens=True,
-                                                 max_length=500,
+                                                 max_length=500000,
                                                  return_overflowing_tokens=True,
                                                  return_token_type_ids=True)
 
@@ -132,10 +101,10 @@ def find_illegal_entity(model_path, is_chinese=True, do_lower_case=True):
         new_end_positions = end_positions
 
     # clip out-of-boundary entity positions.
-    new_start_positions = [start_pos for start_pos in new_start_positions if start_pos < 500]
-    new_end_positions = [end_pos for end_pos in new_end_positions if end_pos < 500]
+    new_start_positions = [start_pos for start_pos in new_start_positions if start_pos < 500000]
+    new_end_positions = [end_pos for end_pos in new_end_positions if end_pos < 500000]
 
-    print("entity tokens after tokenizing ... ")
+    print("print tokens :")
     for start_item, end_item in zip(new_start_positions, new_end_positions):
         print(tokenizer.convert_ids_to_tokens(query_context_tokens["input_ids"][start_item: end_item + 1]))
 
@@ -172,5 +141,69 @@ if __name__ == "__main__":
     # print("check entity boundary")
     # print("=&"*20)
 
+    print(">>> check for Chinese data example ... ...")
+    context_tokens = ['１', '美', '亚', '股', '份', '３', '２', '．', '６', '６', '２', '民', '族', '集', '团', '２', '２', '．', '３',
+                      '８', '３', '鲁', '石', '化', 'Ａ', '１', '９', '．', '１', '１', '４', '四', '川', '湖', '山', '１', '７', '．',
+                      '０', '９', '５', '太', '原', '刚', '玉', '１', '０', '．', '５', '８', '１', '咸', '阳', '偏', '转', '１', '６',
+                      '．', '１', '１', '２', '深', '华', '发', 'Ａ', '１', '５', '．', '６', '６', '３', '渝', '开', '发', 'Ａ', '１',
+                      '５', '．', '５', '２', '４', '深', '发', '展', 'Ａ', '１', '３', '．', '８', '９', '５', '深', '纺', '织', 'Ａ',
+                      '１', '３', '．', '２', '２', '１', '太', '极', '实', '业', '２', '３', '．', '２', '２', '２', '友', '好', '集',
+                      '团', '２', '２', '．', '１', '４', '３', '双', '虎', '涂', '料', '２', '０', '．', '２', '０', '４', '新', '潮',
+                      '实', '业', '１', '５', '．', '５', '８', '５', '信', '联', '股', '份', '１', '２', '．', '５', '７', '１', '氯',
+                      '碱', '化', '工', '２', '１', '．', '１', '７', '２', '百', '隆', '股', '份', '１', '５', '．', '６', '４', '３',
+                      '贵', '华', '旅', '业', '１', '５', '．', '１', '５', '４', '南', '洋', '实', '业', '１', '４', '．', '５', '０',
+                      '５', '福', '建', '福', '联', '１', '３', '．', '８', '０']
+
+    labels = ['O', 'B-NT', 'M-NT', 'M-NT', 'E-NT', 'O', 'O', 'O', 'O', 'O', 'O', 'B-NT', 'M-NT', 'M-NT', 'E-NT', 'O',
+              'O', 'O', 'O', 'O', 'O', 'B-NT', 'M-NT', 'M-NT', 'E-NT', 'O', 'O', 'O', 'O', 'O', 'O', 'B-NT', 'M-NT',
+              'M-NT', 'E-NT', 'O', 'O', 'O', 'O', 'O', 'O', 'B-NT', 'M-NT', 'M-NT', 'E-NT', 'O', 'O', 'O', 'O', 'O',
+              'O', 'B-NT', 'M-NT',
+              'M-NT', 'E-NT', 'O', 'O', 'O', 'O', 'O', 'O', 'B-NT', 'M-NT', 'M-NT', 'E-NT', 'O', 'O', 'O', 'O', 'O',
+              'O',
+              'B-NT', 'M-NT', 'M-NT', 'E-NT', 'O', 'O', 'O', 'O', 'O', 'O', 'B-NT', 'M-NT', 'M-NT', 'E-NT', 'O', 'O',
+              'O', 'O', 'O',
+              'O', 'B-NT', 'M-NT', 'M-NT', 'E-NT', 'O', 'O', 'O', 'O', 'O', 'O', 'B-NT', 'M-NT', 'M-NT', 'E-NT', 'O',
+              'O', 'O', 'O',
+              'O', 'O', 'B-NT', 'M-NT', 'M-NT', 'E-NT', 'O', 'O', 'O', 'O', 'O', 'O', 'B-NT', 'M-NT', 'M-NT', 'E-NT',
+              'O', 'O',
+              'O', 'O', 'O', 'O', 'B-NT', 'M-NT', 'M-NT', 'E-NT', 'O', 'O', 'O', 'O', 'O', 'O', 'B-NT', 'M-NT', 'M-NT',
+              'E-NT',
+              'O', 'O', 'O', 'O', 'O', 'O', 'B-NT', 'M-NT', 'M-NT', 'E-NT', 'O', 'O', 'O', 'O', 'O', 'O', 'B-NT',
+              'M-NT', 'M-NT',
+              'E-NT', 'O', 'O', 'O', 'O', 'O', 'O', 'B-NT', 'M-NT', 'M-NT', 'E-NT', 'O', 'O', 'O', 'O', 'O', 'O',
+              'B-NT',
+              'M-NT', 'M-NT', 'E-NT', 'O', 'O', 'O', 'O', 'O', 'O', 'B-NT', 'M-NT', 'M-NT', 'E-NT', 'O', 'O', 'O', 'O',
+              'O']
+    query = "组织机构"
+
     model_path = "/data/nfsdata/nlp/BERT_BASE_DIR/chinese_L-12_H-768_A-12"
-    find_illegal_entity(model_path)
+    find_illegal_entity(query, context_tokens, labels, model_path, is_chinese=True, do_lower_case=True)
+
+    print("$$$$$"*20)
+    print(">>> check for English data example ... ...")
+    query = "organization"
+    context_tokens = ['RUGBY', 'LEAGUE', '-', 'EUROPEAN', 'SUPER', 'LEAGUE', 'RESULTS', '/', 'STANDINGS', '.', 'LONDON',
+                      '1996-08-24', 'Results', 'of', 'European', 'Super', 'League', 'rugby', 'league', 'matches', 'on',
+                      'Saturday', ':', 'Paris', '14', 'Bradford', '27', 'Wigan', '78', 'Workington', '4', 'Standings',
+                      '(', 'tabulated', 'under', 'played', ',', 'won', ',', 'drawn', ',', 'lost', ',', 'points', 'for',
+                      ',', 'against', ',', 'total', 'points', ')', ':', 'Wigan', '22', '19', '1', '2', '902', '326',
+                      '39', 'St', 'Helens', '21', '19', '0', '2', '884', '441', '38', 'Bradford', '22', '17', '0', '5',
+                      '767', '409', '34', 'Warrington', '21', '12', '0', '9', '555', '499', '24', 'London', '21', '11',
+                      '1', '9', '555', '462', '23', 'Sheffield', '21', '10', '0', '11', '574', '696', '20', 'Halifax',
+                      '21', '9', '1', '11', '603', '552', '19', 'Castleford', '21', '9', '0', '12', '548', '543', '18',
+                      'Oldham', '21', '8', '1', '12', '439', '656', '17', 'Leeds', '21', '6', '0', '15', '531', '681',
+                      '12', 'Paris', '22', '3', '1', '18', '398', '795', '7', 'Workington', '22', '2', '1', '19', '325',
+                      '1021', '5']
+    labels = ['B-MISC', 'E-MISC', 'O', 'B-MISC', 'I-MISC', 'E-MISC', 'O', 'O', 'O', 'O', 'S-LOC', 'O', 'O', 'O',
+              'B-MISC', 'I-MISC', 'E-MISC', 'O', 'O', 'O', 'O', 'O', 'O', 'S-ORG', 'O', 'S-ORG', 'O', 'S-ORG', 'O',
+              'S-ORG', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'O',
+              'O', 'O', 'O', 'S-ORG', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'B-ORG', 'E-ORG', 'O', 'O', 'O', 'O', 'O', 'O',
+              'O', 'S-ORG', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'S-ORG', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'S-ORG', 'O',
+              'O', 'O', 'O', 'O', 'O', 'O', 'S-ORG', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'S-ORG', 'O', 'O', 'O', 'O',
+              'O', 'O', 'O', 'S-ORG', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'S-ORG', 'O', 'O', 'O', 'O', 'O', 'O', 'O',
+              'S-ORG', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'S-ORG', 'O', 'O', 'O', 'O', 'O', 'O', 'O', 'S-ORG', 'O', 'O',
+              'O', 'O', 'O', 'O', 'O']
+
+    model_path = "/data/xiaoya/models/bert_cased_large"
+    find_illegal_entity(query, context_tokens, labels, model_path, is_chinese=False, do_lower_case=False)
+
