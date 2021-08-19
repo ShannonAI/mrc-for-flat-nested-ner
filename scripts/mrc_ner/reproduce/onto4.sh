@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # -*- coding: utf-8 -*-
 
-# file: zh_onto4.sh
+# file: onto4.sh
+# desc: for chinese ontonotes 04
 
 REPO_PATH=/userhome/xiaoya/mrc-for-flat-nested-ner
 export PYTHONPATH="$PYTHONPATH:$REPO_PATH"

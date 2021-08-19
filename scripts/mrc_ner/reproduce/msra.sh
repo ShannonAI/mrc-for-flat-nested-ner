@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # -*- coding: utf-8 -*-
 
-# file: zh_msra.sh
+# file: msra.sh
 
 REPO_PATH=/userhome/xiaoya/mrc-for-flat-nested-ner
 export PYTHONPATH="$PYTHONPATH:$REPO_PATH"

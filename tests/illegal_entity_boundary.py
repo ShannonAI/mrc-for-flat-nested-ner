@@ -164,13 +164,13 @@ def _improve_answer_span(doc_tokens, input_start, input_end, tokenizer, orig_ans
 
 
 if __name__ == "__main__":
-    file_path = "/data/xiaoya/datasets/ner/msra/train.char.bmes"
-    search_string = "美亚股份"
-    find_data_instance(file_path, search_string)
-
-    print("=%"*20)
-    print("check entity boundary")
-    print("=&"*20)
+    # file_path = "/data/xiaoya/datasets/ner/msra/train.char.bmes"
+    # search_string = "美亚股份"
+    # find_data_instance(file_path, search_string)
+    #
+    # print("=%"*20)
+    # print("check entity boundary")
+    # print("=&"*20)
 
     model_path = "/data/nfsdata/nlp/BERT_BASE_DIR/chinese_L-12_H-768_A-12"
     find_illegal_entity(model_path)
