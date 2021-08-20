@@ -14,3 +14,4 @@ class BertTaggerConfig(BertConfig):
     def __init__(self, **kwargs):
         super(BertTaggerConfig, self).__init__(**kwargs)
         self.classifier_dropout = kwargs.get("classifier_dropout", 0.1)
+        self.num_labels = kwargs.get("num_labels", 6)

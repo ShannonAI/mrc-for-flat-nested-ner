@@ -3,13 +3,14 @@
 
 # file: mrc_ner_trainer.py
 
-import argparse
 import os
+import argparse
+import logging
 from collections import namedtuple
 from typing import Dict
 
-import pytorch_lightning as pl
 import torch
+import pytorch_lightning as pl
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
 from tokenizers import BertWordPieceTokenizer
@@ -27,7 +28,6 @@ from models.bert_query_ner import BertQueryNER
 from models.model_config import BertQueryNerConfig
 from utils.get_parser import get_parser
 from utils.radom_seed import set_random_seed
-import logging
 
 set_random_seed(0)
 
@@ -39,13 +39,16 @@ class BertLabeling(pl.LightningModule):
     ):
         """Initialize a model, tokenizer and config."""
         super().__init__()
+        format = '%(asctime)s - %(name)s - %(message)s'
         if isinstance(args, argparse.Namespace):
             self.save_hyperparameters(args)
             self.args = args
+            logging.basicConfig(format=format, filename=os.path.join(self.args.default_root_dir, "eval_result_log.txt"), level=logging.INFO)
         else:
             # eval mode
             TmpArgs = namedtuple("tmp_args", field_names=list(args.keys()))
             self.args = args = TmpArgs(**args)
+            logging.basicConfig(format=format, filename=os.path.join(self.args.default_root_dir, "eval_test.txt"), level=logging.INFO)
 
         self.bert_dir = args.bert_config_dir
         self.data_dir = self.args.data_dir
@@ -58,6 +61,9 @@ class BertLabeling(pl.LightningModule):
         self.model = BertQueryNER.from_pretrained(args.bert_config_dir,
                                                   config=bert_config)
         logging.info(str(args.__dict__ if isinstance(args, argparse.ArgumentParser) else args))
+        self.result_logger = logging.getLogger(__name__)
+        self.result_logger.setLevel(logging.INFO)
+        self.result_logger.info(str(args.__dict__ if isinstance(args, argparse.ArgumentParser) else args))
         self.bce_loss = BCEWithLogitsLoss(reduction="none")
 
         weight_sum = args.weight_start + args.weight_end + args.weight_span
@@ -170,7 +176,6 @@ class BertLabeling(pl.LightningModule):
         return start_loss, end_loss, match_loss
 
     def training_step(self, batch, batch_idx):
-        """"""
         tf_board_logs = {
             "lr": self.trainer.optimizers[0].param_groups[0]['lr']
         }
@@ -200,10 +205,7 @@ class BertLabeling(pl.LightningModule):
         return {'loss': total_loss, 'log': tf_board_logs}
 
     def validation_step(self, batch, batch_idx):
-        """"""
-
         output = {}
-
         tokens, token_type_ids, start_labels, end_labels, start_label_mask, end_label_mask, match_labels, sample_idx, label_idx = batch
 
         attention_mask = (tokens != 0).long()
@@ -235,7 +237,6 @@ class BertLabeling(pl.LightningModule):
         return output
 
     def validation_epoch_end(self, outputs):
-        """"""
         avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
         tensorboard_logs = {'val_loss': avg_loss}
 
@@ -247,27 +248,46 @@ class BertLabeling(pl.LightningModule):
         tensorboard_logs[f"span_precision"] = span_precision
         tensorboard_logs[f"span_recall"] = span_recall
         tensorboard_logs[f"span_f1"] = span_f1
+        self.result_logger.info(f"EVAL INFO -> current_epoch is: {self.trainer.current_epoch}, current_global_step is: {self.trainer.global_step} ")
+        self.result_logger.info(f"EVAL INFO -> valid_f1 is: {span_f1}; precision: {span_precision}, recall: {span_recall}.")
 
         return {'val_loss': avg_loss, 'log': tensorboard_logs}
 
     def test_step(self, batch, batch_idx):
         """"""
-        return self.validation_step(batch, batch_idx)
+        output = {}
+        tokens, token_type_ids, start_labels, end_labels, start_label_mask, end_label_mask, match_labels, sample_idx, label_idx = batch
 
-    def test_epoch_end(
-        self,
-        outputs
-    ) -> Dict[str, Dict[str, Tensor]]:
-        """"""
-        return self.validation_epoch_end(outputs)
+        attention_mask = (tokens != 0).long()
+        start_logits, end_logits, span_logits = self(tokens, attention_mask, token_type_ids)
+
+        start_preds, end_preds = start_logits > 0, end_logits > 0
+        span_f1_stats = self.span_f1(start_preds=start_preds, end_preds=end_preds, match_logits=span_logits,
+                                     start_label_mask=start_label_mask, end_label_mask=end_label_mask,
+                                     match_labels=match_labels)
+        output["span_f1_stats"] = span_f1_stats
+
+        return output
+
+    def test_epoch_end(self, outputs) -> Dict[str, Dict[str, Tensor]]:
+        tensorboard_logs = {}
+
+        all_counts = torch.stack([x[f'span_f1_stats'] for x in outputs]).sum(0)
+        span_tp, span_fp, span_fn = all_counts
+        span_recall = span_tp / (span_tp + span_fn + 1e-10)
+        span_precision = span_tp / (span_tp + span_fp + 1e-10)
+        span_f1 = span_precision * span_recall * 2 / (span_recall + span_precision + 1e-10)
+
+        self.result_logger.info(f"TEST INFO -> test_f1 is: {span_f1} precision: {span_precision}, recall: {span_recall}")
+        return {'log': tensorboard_logs}
 
     def train_dataloader(self) -> DataLoader:
         return self.get_dataloader("train")
 
-    def val_dataloader(self):
+    def val_dataloader(self) -> DataLoader:
         return self.get_dataloader("dev")
 
-    def test_dataloader(self):
+    def test_dataloader(self) -> DataLoader:
         return self.get_dataloader("test")
 
     def get_dataloader(self, prefix="train", limit: int = None) -> DataLoader:
