@@ -25,13 +25,14 @@ from transformers import AdamW, get_linear_schedule_with_warmup, get_polynomial_
 from utils.get_parser import get_parser
 from datasets.tagger_ner_dataset import get_labels, TaggerNERDataset
 from datasets.truncate_dataset import TruncateDataset
-from datasets.collate_functions import collate_to_max_length
+from datasets.collate_functions import tagger_collate_to_max_length
 from metrics.tagger_span_f1 import TaggerSpanF1
+from metrics.functional.tagger_span_f1 import transform_predictions_to_labels
 from models.bert_tagger import BertTagger
 from models.model_config import BertTaggerConfig
 
 
-class BertLabeling(pl.LightningModule):
+class BertSequenceLabeling(pl.LightningModule):
     def __init__(
         self,
         args: argparse.Namespace
@@ -51,23 +52,27 @@ class BertLabeling(pl.LightningModule):
 
         self.bert_dir = args.bert_config_dir
         self.data_dir = self.args.data_dir
-
+        self.task_labels = get_labels(self.args.data_sign)
+        self.num_labels = len(self.task_labels)
+        self.task_idx2label = {label_idx : label_item for label_idx, label_item in enumerate(get_labels(self.args.data_sign))}
         bert_config = BertTaggerConfig.from_pretrained(args.bert_config_dir,
                                                        hidden_dropout_prob=args.bert_dropout,
                                                        attention_probs_dropout_prob=args.bert_dropout,
                                                        classifier_dropout=args.classifier_dropout,
-                                                       num_labels=7)
+                                                       num_labels=self.num_labels)
         self.tokenizer = AutoTokenizer.from_pretrained(args.bert_config_dir, use_fast=False, do_lower_case=args.do_lowercase)
         self.model = BertTagger.from_pretrained(args.bert_config_dir, config=bert_config)
         logging.info(str(args.__dict__ if isinstance(args, argparse.ArgumentParser) else args))
         self.loss_func = CrossEntropyLoss()
-        self.span_f1 = QuerySpanF1()
+        self.span_f1 = TaggerSpanF1()
         self.chinese = args.chinese
         self.optimizer = args.optimizer
 
     @staticmethod
     def add_model_specific_args(parent_parser):
         parser = argparse.ArgumentParser(parents=[parent_parser], add_help=False)
+        parser.add_argument("--train_batch_size", type=int, default=8, help="batch size")
+        parser.add_argument("--eval_batch_size", type=int, default=8, help="batch size")
         parser.add_argument("--bert_dropout", type=float, default=0.1, help="bert dropout rate")
         parser.add_argument("--classifier_dropout", type=float, default=0.1)
         parser.add_argument("--chinese", action="store_true", help="is chinese dataset")
@@ -75,10 +80,11 @@ class BertLabeling(pl.LightningModule):
         parser.add_argument("--final_div_factor", type=float, default=1e4, help="final div factor of linear decay scheduler")
         parser.add_argument("--output_dir", type=str, default="", help="the path for saving intermediate model checkpoints.")
         parser.add_argument("--lr_scheduler", type=str, default="linear_decay", help="lr scheduler")
-        parser.add_argument("--data_sign", type=str, default="conll03", help="data signature for the dataset.")
+        parser.add_argument("--data_sign", type=str, default="en_conll03", help="data signature for the dataset.")
         parser.add_argument("--polydecay_ratio", type=float, default=4, help="ratio for polydecay learing rate scheduler.")
         parser.add_argument("--do_lowercase", action="store_true", )
         parser.add_argument("--data_file_suffix", type=str, default=".char.bmes")
+        parser.add_argument("--lr_scheulder", type=str, default="polydecay")
         return parser
 
     def configure_optimizers(self):
@@ -121,15 +127,15 @@ class BertLabeling(pl.LightningModule):
             raise ValueError
         return [optimizer], [{"scheduler": scheduler, "interval": "step"}]
 
-    def forward(self, input_ids, attention_mask, token_type_ids):
-        return self.model(input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids)
+    def forward(self, input_ids, token_type_ids, attention_mask):
+        return self.model(input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
 
     def compute_loss(self, sequence_logits, sequence_labels, input_mask=None):
-        if input_mask is not None:
-            masked_logits = torch.masked_select(sequence_logits, input_mask)
-            loss = self.loss_fct(sequence_logits.view(-1, self.num_labels), sequence_labels.view(-1))
-        else:
-            loss = self.loss_fct(sequence_logits.view(-1, self.num_labels), sequence_labels.view(-1))
+        # if input_mask is not None:
+        #     masked_logits = torch.masked_select(sequence_logits, input_mask)
+        #     loss = self.loss_fct(sequence_logits.view(-1, self.num_labels), sequence_labels.view(-1))
+        # else:
+        loss = self.loss_func(sequence_logits.view(-1, self.num_labels), sequence_labels.view(-1))
         return loss
 
     def training_step(self, batch, batch_idx):
@@ -146,24 +152,15 @@ class BertLabeling(pl.LightningModule):
         output = {}
 
         token_input_ids, token_type_ids, attention_mask, sequence_labels = batch
+        batch_size = token_input_ids.shape[0]
+        print(batch_size)
         logits = self.model(token_input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
-
-        start_loss, end_loss, match_loss = self.compute_loss(start_logits=start_logits,
-                                                             end_logits=end_logits,
-                                                             span_logits=span_logits,
-                                                             start_labels=start_labels,
-                                                             end_labels=end_labels,
-                                                             match_labels=match_labels,
-                                                             start_label_mask=start_label_mask,
-                                                             end_label_mask=end_label_mask
-                                                             )
-
         loss = self.compute_loss(logits, sequence_labels, token_type_ids)
         output[f"val_loss"] = loss
 
-        span_f1_stats = self.span_f1(start_preds=start_preds, end_preds=end_preds, match_logits=span_logits,
-                                     start_label_mask=start_label_mask, end_label_mask=end_label_mask,
-                                     match_labels=match_labels)
+        sequence_pred_lst = transform_predictions_to_labels(logits.view(batch_size, -1, len(self.task_labels)), self.task_idx2label, input_type="logit")
+        sequence_gold_lst = transform_predictions_to_labels(sequence_labels, self.task_idx2label, input_type="label")
+        span_f1_stats = self.span_f1(sequence_pred_lst, sequence_gold_lst)
         output["span_f1_stats"] = span_f1_stats
 
         return output
@@ -203,14 +200,14 @@ class BertLabeling(pl.LightningModule):
         """get train/dev/test dataloader"""
         data_path = os.path.join(self.data_dir, f"{prefix}{self.args.data_file_suffix}")
         dataset = TaggerNERDataset(data_path, self.tokenizer, self.args.data_sign,
-                                   max_length=self.self.args.max_length, is_chinese=self.chinese,
+                                   max_length=self.args.max_length, is_chinese=self.args.chinese,
                                    pad_to_maxlen=False)
 
         if limit is not None:
             dataset = TruncateDataset(dataset, limit)
 
         if prefix == "train":
-            batch_size = self.train_batch_size
+            batch_size = self.args.train_batch_size
             # define data_generator will help experiment reproducibility.
             # cannot use random data sampler since the gradient may explode.
             data_generator = torch.Generator()
@@ -218,12 +215,12 @@ class BertLabeling(pl.LightningModule):
             data_sampler = RandomSampler(dataset, generator=data_generator)
         else:
             data_sampler = SequentialSampler(dataset)
-            batch_size = self.eval_batch_size
+            batch_size = self.args.eval_batch_size
 
         dataloader = DataLoader(
             dataset=dataset, sampler=data_sampler,
             batch_size=batch_size, num_workers=self.args.workers,
-            collate_fn=collate_to_max_length
+            collate_fn=tagger_collate_to_max_length
         )
 
         return dataloader
@@ -264,21 +261,17 @@ def main():
     parser = get_parser()
 
     # add model specific args
-    parser = BertLabeling.add_model_specific_args(parser)
-
+    parser = BertSequenceLabeling.add_model_specific_args(parser)
     # add all the available trainer options to argparse
     # ie: now --gpus --num_nodes ... --fast_dev_run all work in the cli
     parser = Trainer.add_argparse_args(parser)
-
     args = parser.parse_args()
-
-    model = BertLabeling(args)
+    model = BertSequenceLabeling(args)
     if args.pretrained_checkpoint:
         model.load_state_dict(torch.load(args.pretrained_checkpoint,
                                          map_location=torch.device('cpu'))["state_dict"])
-
     checkpoint_callback = ModelCheckpoint(
-        filepath=args.default_root_dir,
+        filepath=args.output_dir,
         save_top_k=20,
         verbose=True,
         monitor="span_f1",
@@ -294,8 +287,7 @@ def main():
     trainer.fit(model)
 
     # after training, use the model checkpoint which achieves the best f1 score on dev set to compute the f1 on test set.
-    best_f1_on_dev, path_to_best_checkpoint = find_best_checkpoint_on_dev(args.output_dir,
-                                                                          only_keep_the_best_ckpt=args.only_keep_the_best_ckpt_after_training)
+    best_f1_on_dev, path_to_best_checkpoint = find_best_checkpoint_on_dev(args.output_dir,)
     trainer.result_logger.info("=&" * 20)
     trainer.result_logger.info(f"Best F1 on DEV is {best_f1_on_dev}")
     trainer.result_logger.info(f"Best checkpoint on DEV set is {path_to_best_checkpoint}")

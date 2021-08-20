@@ -21,14 +21,14 @@ class BertTagger(BertPreTrainedModel):
         if config.classifier_sign == "single_linear":
             self.classifier = SingleLinearClassifier(config.hidden_size, self.num_labels)
         elif config.classifier_sign == "multi_nonlinear":
-            self.classifier = MultiNonLinearClassifier(config.hidden_size, self.num_labels)
+            self.classifier = MultiNonLinearClassifier(config.hidden_size, self.num_labels, config.classifier_dropout)
         else:
             raise ValueError
 
         self.init_weights()
 
     def forward(self, input_ids, token_type_ids=None, attention_mask=None,):
-        last_bert_layer, pooled_output = self.bert(input_ids, token_type_ids, attention_mask, output_all_encoded_layers=False)
+        last_bert_layer, pooled_output = self.bert(input_ids, token_type_ids, attention_mask)
         last_bert_layer = last_bert_layer.view(-1, self.hidden_size)
         last_bert_layer = self.dropout(last_bert_layer)
         logits = self.classifier(last_bert_layer)

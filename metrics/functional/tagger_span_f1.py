@@ -3,175 +3,110 @@
 
 # file: tagger_span_f1.py
 
-
-def cal_f1_score(pcs, rec):
-    tmp = 2 * pcs * rec / (pcs + rec)
-    return round(tmp, 4)
+import torch
+import torch.nn.functional as F
 
 
-def tagger_span_f1(start_preds, end_preds, match_logits, start_label_mask, end_label_mask, match_labels, flat=False):
-    pass
-
-
-def extract_entities(labels_lst, start_label="1_4"):
-    def gen_entities(label_lst, start_label=1, dims=1):
-        # rules -> if end_mark > start_label
-        entities = dict()
-
-        if "_" in start_label:
-            start_label = start_label.split("_")
-            start_label = [int(tmp) for tmp in start_label]
-            ind_func = lambda x: (bool(label in start_label) for label in x)
-            indicator = sum([int(tmp) for tmp in ind_func(label_lst)])
-        else:
-            start_label = int(start_label)
-            indicator = 1 if start_label in labels_lst else 0
-
-        if indicator > 0:
-            if isinstance(start_label, list):
-                ixs, _ = zip(*filter(lambda x: x[1] in start_label, enumerate(label_lst)))
-            elif isinstance(start_label, int):
-                ixs, _ = zip(*filter(lambda x: x[1] == start_label, enumerate(label_lst)))
-            else:
-                raise ValueError("You Should Notice that The FORMAT of your INPUT")
-
-            ixs = list(ixs)
-            ixs.append(len(label_lst))
-            for i in range(len(ixs) - 1):
-                sub_label = label_lst[ixs[i]: ixs[i + 1]]
-                end_mark = max(sub_label)
-                end_ix = ixs[i] + sub_label.index(end_mark) + 1
-                entities["{}_{}".format(ixs[i], end_ix)] = label_lst[ixs[i]: end_ix]
-        return entities
-
-    if start_label == "1":
-        entities = gen_entities(labels_lst, start_label=int(start_label))
-    elif start_label == "4":
-        entities = gen_entities(labels_lst, start_label=int(start_label))
-    elif "_" in start_label:
-        entities = gen_entities(labels_lst, start_label=start_label)
+def transform_predictions_to_labels(sequence_input_lst, idx2label_map, input_type="logit"):
+    """
+    shape:
+        sequence_input_lst: [batch_size, seq_len, num_labels]
+    """
+    if input_type == "logit":
+        label_sequence = torch.argmax(F.softmax(sequence_input_lst, dim=2), dim=2).detach().cpu().numpy().tolist()
+        output_label_sequence = [[idx2label_map[item] for item in tmp_label_lst] for tmp_label_lst in label_sequence]
+    elif input_type == "prob":
+        label_sequence = torch.argmax(sequence_input_lst, dim=2).detach().cpu().numpy().tolist()
+        output_label_sequence = [[idx2label_map[item] for item in tmp_label_lst] for tmp_label_lst in label_sequence]
+    elif input_type == "label":
+        sequence_input_lst = sequence_input_lst.detach().cpu().numpy().tolist()
+        output_label_sequence = [[idx2label_map[item] for item in tmp_label_lst] for tmp_label_lst in sequence_input_lst]
     else:
-        raise ValueError("You Should Check The FOMAT Of your SPLIT NUMBER !!!!!")
-
-    return entities
-
-
-def split_index(label_list):
-    label_dict = {label: i for i, label in enumerate(label_list)}
-    label_idx = [tmp_value for tmp_key, tmp_value in label_dict.items() if
-                 "S" in tmp_key.split("-")[0] or "B" in tmp_key]
-    str_label_idx = [str(tmp) for tmp in label_idx]
-    label_idx = "_".join(str_label_idx)
-    return label_idx
+        raise ValueError
+    return output_label_sequence
 
 
-def compute_performance(pred_label, gold_label, pred_mask, label_list, dims=2, macro=False):
-    start_label = split_index(label_list)
+def compute_tagger_span_f1(sequence_pred_lst, sequence_gold_lst):
+    sum_true_positive, sum_false_positive, sum_false_negative = 0, 0, 0
 
-    if dims == 1:
-        mask_index = [tmp_idx for tmp_idx, tmp in enumerate(pred_mask) if tmp != 0]
-        pred_label = [tmp for tmp_idx, tmp in enumerate(pred_label) if tmp_idx in mask_index]
-        gold_label = [tmp for tmp_idx, tmp in enumerate(gold_label) if tmp_idx in mask_index]
+    for seq_pred_item, seq_gold_item in zip(sequence_pred_lst, sequence_gold_lst):
+        gold_entity_lst = get_entity_from_bmes_lst(seq_gold_item)
+        pred_entity_lst = get_entity_from_bmes_lst(seq_pred_item)
 
-        pred_entities = extract_entities(pred_label, start_label=start_label)
-        truth_entities = extract_entities(gold_label, start_label=start_label)
+        true_positive_item, false_positive_item, false_negative_item = count_confusion_matrix(pred_entity_lst, gold_entity_lst)
+        sum_true_positive += true_positive_item
+        sum_false_negative += false_negative_item
+        sum_false_positive += false_positive_item
 
-        num_true = len(truth_entities)
-        num_extraction = len(pred_entities)
+    batch_confusion_matrix = torch.tensor([sum_true_positive, sum_false_positive, sum_false_negative], dtype=torch.long)
+    return batch_confusion_matrix
 
-        num_true_positive = 0
-        for entity_idx in pred_entities.keys():
-            try:
-                if truth_entities[entity_idx] == pred_entities[entity_idx]:
-                    num_true_positive += 1
-            except:
-                pass
 
-        dict_match = list(filter(lambda x: x[0] == x[1], zip(pred_label, gold_label)))
-        acc = len(dict_match) / float(len(gold_label))
-
-        if not macro:
-            return acc, num_true_positive, float(num_extraction), float(num_true)
-
-        if num_extraction != 0:
-            pcs = num_true_positive / float(num_extraction)
+def count_confusion_matrix(pred_entities, gold_entities):
+    true_positive, false_positive, false_negative = 0, 0, 0
+    for span_item in pred_entities:
+        if span_item in gold_entities:
+            true_positive += 1
+            gold_entities.remove(span_item)
         else:
-            pcs = 0
+            false_positive += 1
+    # these entities are not predicted.
+    for span_item in gold_entities:
+        false_negative += 1
+    return true_positive, false_positive, false_negative
 
-        if num_true != 0:
-            recall = num_true_positive / float(num_true)
+
+def get_entity_from_bmes_lst(label_list):
+    """reuse the code block from
+        https://github.com/jiesutd/NCRFpp/blob/105a53a321eca9c1280037c473967858e01aaa43/utils/metric.py#L73
+        Many thanks to Jie Yang.
+    """
+    list_len = len(label_list)
+    begin_label = 'B-'
+    end_label = 'E-'
+    single_label = 'S-'
+    whole_tag = ''
+    index_tag = ''
+    tag_list = []
+    stand_matrix = []
+    for i in range(0, list_len):
+        # wordlabel = word_list[i]
+        current_label = label_list[i].upper()
+        if begin_label in current_label:
+            if index_tag != '':
+                tag_list.append(whole_tag + ',' + str(i-1))
+            whole_tag = current_label.replace(begin_label,"",1) +'[' +str(i)
+            index_tag = current_label.replace(begin_label,"",1)
+
+        elif single_label in current_label:
+            if index_tag != '':
+                tag_list.append(whole_tag + ',' + str(i-1))
+            whole_tag = current_label.replace(single_label,"",1) +'[' +str(i)
+            tag_list.append(whole_tag)
+            whole_tag = ""
+            index_tag = ""
+        elif end_label in current_label:
+            if index_tag != '':
+                tag_list.append(whole_tag +',' + str(i))
+            whole_tag = ''
+            index_tag = ''
         else:
-            recall = 0
+            continue
+    if (whole_tag != '')&(index_tag != ''):
+        tag_list.append(whole_tag)
+    tag_list_len = len(tag_list)
 
-        if pcs + recall != 0:
-            f1 = 2 * pcs * recall / (pcs + recall)
-        else:
-            f1 = 0
-
-        if num_extraction == 0 and num_true == 0:
-            acc, pcs, recall, f1 = 0, 0, 0, 0
-        acc, pcs, recall, f1 = round(acc, 4), round(pcs, 4), round(recall, 4), round(f1, 4)
-
-        return acc, pcs, recall, f1
-
-    elif dims == 2:
-        if not macro:
-            acc, posit, extra, true = 0, 0, 0, 0
-            for pred_item, truth_item, mask_item in zip(pred_label, gold_label, pred_mask):
-                tmp_acc, tmp_posit, tmp_extra, tmp_true = compute_performance(pred_item, truth_item, mask_item,
-                                                                              label_list, dims=1)
-                posit += tmp_posit
-                extra += tmp_extra
-                true += tmp_true
-                acc += tmp_acc
-
-            if extra != 0:
-                pcs = posit / float(extra)
-            else:
-                pcs = 0
-
-            if true != 0:
-                recall = posit / float(true)
-            else:
-                recall = 0
-
-            if pcs + recall != 0:
-                f1 = 2 * pcs * recall / (pcs + recall)
-            else:
-                f1 = 0
-            acc = acc / len(pred_label)
-            acc, pcs, recall, f1 = round(acc, 4), round(pcs, 4), round(recall, 4), round(f1, 4)
-            return acc, pcs, recall, f1
-
-        acc_lst = []
-        pcs_lst = []
-        recall_lst = []
-        f1_lst = []
-
-        for pred_item, truth_item, mask_item in zip(pred_label, gold_label, pred_mask):
-            tmp_acc, tmp_pcs, tmp_recall, tmp_f1 = compute_performance(pred_item, truth_item, \
-                                                                       mask_item, label_list, dims=1, macro=True)
-            if tmp_acc == 0.0 and tmp_pcs == 0 and tmp_recall == 0 and tmp_f1 == 0:
-                continue
-            acc_lst.append(tmp_acc)
-            pcs_lst.append(tmp_pcs)
-            recall_lst.append(tmp_recall)
-            f1_lst.append(tmp_f1)
-
-        aveg_acc = round(sum(acc_lst) / len(acc_lst), 4)
-        aveg_pcs = round(sum(pcs_lst) / len(pcs_lst), 4)
-        aveg_recall = round(sum(recall_lst) / len(recall_lst), 4)
-        aveg_f1 = round(sum(f1_lst) / len(f1_lst), 4)
-
-        return aveg_acc, aveg_pcs, aveg_recall, aveg_f1
+    for i in range(0, tag_list_len):
+        if len(tag_list[i]) > 0:
+            tag_list[i] = tag_list[i]+ ']'
+            insert_list = reverse_style(tag_list[i])
+            stand_matrix.append(insert_list)
+    return stand_matrix
 
 
-if __name__ == "__main__":
-    model_pred = [0, 1, 2, 3, 0, 1, 2, 3, 0, 4]
-    entities = extract_entities(model_pred, start_label="1_2_4")
+def reverse_style(input_string):
+    target_position = input_string.index('[')
+    input_len = len(input_string)
+    output_string = input_string[target_position:input_len] + input_string[0:target_position]
+    return output_string
 
-    # print(entities)
-
-    label_list = ["O", "B-NS", "M-NS", "E-NS"]
-    label_idx = split_index(label_list)
-    print(label_idx)

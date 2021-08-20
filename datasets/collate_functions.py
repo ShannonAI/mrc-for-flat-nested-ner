@@ -4,6 +4,29 @@ import torch
 from typing import List
 
 
+def tagger_collate_to_max_length(batch: List[List[torch.Tensor]]) -> List[torch.Tensor]:
+    """
+    pad to maximum length of this batch
+    Args:
+        batch: a batch of samples, each contains a list of field data(Tensor):
+            tokens, token_type_ids, attention_mask, wordpiece_label_idx_lst
+    Returns:
+        output: list of field batched data, which shape is [batch, max_length]
+    """
+    batch_size = len(batch)
+    max_length = max(x[0].shape[0] for x in batch)
+    output = []
+
+    for field_idx in range(4):
+        pad_output = torch.full([batch_size, max_length], 0, dtype=batch[0][field_idx].dtype)
+        for sample_idx in range(batch_size):
+            data = batch[sample_idx][field_idx]
+            pad_output[sample_idx][: data.shape[0]] = data
+        output.append(pad_output)
+
+    return output
+
+
 def collate_to_max_length(batch: List[List[torch.Tensor]]) -> List[torch.Tensor]:
     """
     pad to maximum length of this batch
