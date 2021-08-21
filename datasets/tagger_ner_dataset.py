@@ -113,40 +113,46 @@ class TaggerNERDataset(Dataset):
                 wordpiece_token_lst.append(tmp_token_lst[0])
                 wordpiece_label_lst.append(label_item)
             else:
+                len_wordpiece = len(tmp_token_lst)
                 wordpiece_token_lst.extend(tmp_token_lst)
-                entity_pos, entity_cate = label_item.split("-")
-                len_wordpiece = len(wordpiece_token_lst)
-                if "B" == entity_pos:
-                    upgrade_label = "M-"+entity_cate
-                    tmp_label_lst = [label_item] + [upgrade_label for idx in range((len_wordpiece - 1))]
-                    wordpiece_label_lst.extend(tmp_label_lst)
-                elif "M" == entity_pos or "I" == entity_pos:
-                    upgrade_label = entity_pos+"-"+entity_cate
-                    tmp_label_lst = len_wordpiece * [upgrade_label]
-                    wordpiece_label_lst.extend(tmp_label_lst)
-                elif "E" == entity_pos:
-                    upgrade_label = "M-"+entity_cate
-                    tmp_label_lst = [upgrade_label for idx in range((len_wordpiece - 1))] + [label_item]
-                    wordpiece_label_lst.extend(tmp_label_lst)
-                elif "O" == entity_pos:
-                    upgrade_label = "O"
-                    tmp_label_lst = len_wordpiece * [upgrade_label]
-                    wordpiece_label_lst.extend(tmp_label_lst)
-                elif "S" == entity_pos:
-                    upgrade_label_s = "B-"+entity_cate
-                    upgrade_label_m = "M-"+entity_cate
-                    upgrade_label_e = "E-"+entity_cate
-                    tmp_label_lst = [upgrade_label_s] + [upgrade_label_m for idx in range((len_wordpiece - 2))] + [upgrade_label_e]
-                    wordpiece_label_lst.extend(tmp_label_lst)
-                else:
-                    raise ValueError("entity tagging schema should be BMESO OR BIESO")
+                tmp_label_lst = [label_item] + [-100 for idx in range((len_wordpiece - 1))]
+                wordpiece_label_lst.extend(tmp_label_lst)
+            #
+            # else:
+            #     wordpiece_token_lst.extend(tmp_token_lst)
+            #     entity_pos, entity_cate = label_item.split("-")
+            #     len_wordpiece = len(wordpiece_token_lst)
+            #     if "B" == entity_pos:
+            #         upgrade_label = "M-"+entity_cate
+            #         tmp_label_lst = [label_item] + [upgrade_label for idx in range((len_wordpiece - 1))]
+            #         wordpiece_label_lst.extend(tmp_label_lst)
+            #     elif "M" == entity_pos or "I" == entity_pos:
+            #         upgrade_label = entity_pos+"-"+entity_cate
+            #         tmp_label_lst = len_wordpiece * [upgrade_label]
+            #         wordpiece_label_lst.extend(tmp_label_lst)
+            #     elif "E" == entity_pos:
+            #         upgrade_label = "M-"+entity_cate
+            #         tmp_label_lst = [upgrade_label for idx in range((len_wordpiece - 1))] + [label_item]
+            #         wordpiece_label_lst.extend(tmp_label_lst)
+            #     elif "O" == entity_pos:
+            #         upgrade_label = "O"
+            #         tmp_label_lst = len_wordpiece * [upgrade_label]
+            #         wordpiece_label_lst.extend(tmp_label_lst)
+            #     elif "S" == entity_pos:
+            #         upgrade_label_s = "B-"+entity_cate
+            #         upgrade_label_m = "M-"+entity_cate
+            #         upgrade_label_e = "E-"+entity_cate
+            #         tmp_label_lst = [upgrade_label_s] + [upgrade_label_m for idx in range((len_wordpiece - 2))] + [upgrade_label_e]
+            #         wordpiece_label_lst.extend(tmp_label_lst)
+            #     else:
+            #         raise ValueError("entity tagging schema should be BMESO OR BIESO")
 
         if len(wordpiece_token_lst) > self.max_length - 2:
             wordpiece_token_lst = wordpiece_token_lst[: self.max_length-2]
             wordpiece_label_lst = wordpiece_label_lst[: self.max_length-2]
 
         wordpiece_token_lst = [self.cls_idx] + wordpiece_token_lst + [self.sep_idx]
-        wordpiece_label_lst = ["O"] + wordpiece_label_lst + ["O"]
+        wordpiece_label_lst = [-100] + wordpiece_label_lst + [-100]
         # token_type_ids: segment token indices to indicate first and second portions of the inputs.
         # - 0 corresponds to a "sentence a" token
         # - 1 corresponds to a "sentence b" token
@@ -155,11 +161,13 @@ class TaggerNERDataset(Dataset):
         # - 1 for tokens that are not masked.
         # - 0 for tokens that are masked.
         attention_mask = [1] * len(wordpiece_token_lst)
-        wordpiece_label_idx_lst = [self.label2idx[label_item] for label_item in wordpiece_label_lst]
+        is_wordpiece_mask = [1 if label_item != -100 else -100 for label_item in wordpiece_label_lst]
+        wordpiece_label_idx_lst = [self.label2idx[label_item] if label_item != -100 else -100 for label_item in wordpiece_label_lst]
 
         return [torch.tensor(wordpiece_token_lst, dtype=torch.long),
                 torch.tensor(token_type_ids, dtype=torch.long),
                 torch.tensor(attention_mask, dtype=torch.long),
-                torch.tensor(wordpiece_label_idx_lst, dtype=torch.long)]
+                torch.tensor(wordpiece_label_idx_lst, dtype=torch.long),
+                torch.tensor(is_wordpiece_mask, dtype=torch.long)]
 
 

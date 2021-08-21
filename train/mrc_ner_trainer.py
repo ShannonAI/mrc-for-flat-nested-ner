@@ -17,7 +17,7 @@ from tokenizers import BertWordPieceTokenizer
 from torch import Tensor
 from torch.nn.modules import CrossEntropyLoss, BCEWithLogitsLoss
 from torch.utils.data import DataLoader
-from transformers import AdamW
+from transformers import AdamW, get_linear_schedule_with_warmup, get_polynomial_decay_schedule_with_warmup
 from torch.optim import SGD
 
 from datasets.mrc_ner_dataset import MRCNERDataset
@@ -95,6 +95,7 @@ class BertLabeling(pl.LightningModule):
                             help="loss type")
         parser.add_argument("--final_div_factor", type=float, default=1e4,
                             help="final div factor of linear decay scheduler")
+        parser.add_argument("--lr_scheduler", type=str, default="onecycle", )
         return parser
 
     def configure_optimizers(self):
@@ -124,11 +125,18 @@ class BertLabeling(pl.LightningModule):
             optimizer = SGD(optimizer_grouped_parameters, lr=self.args.lr, momentum=0.9)
         num_gpus = len([x for x in str(self.args.gpus).split(",") if x.strip()])
         t_total = (len(self.train_dataloader()) // (self.args.accumulate_grad_batches * num_gpus) + 1) * self.args.max_epochs
-        scheduler = torch.optim.lr_scheduler.OneCycleLR(
-            optimizer, max_lr=self.args.lr, pct_start=float(self.args.warmup_steps/t_total),
-            final_div_factor=self.args.final_div_factor,
-            total_steps=t_total, anneal_strategy='linear'
-        )
+        if self.args.lr_scheduler == "onecycle":
+            scheduler = torch.optim.lr_scheduler.OneCycleLR(
+                optimizer, max_lr=self.args.lr, pct_start=float(self.args.warmup_steps/t_total),
+                final_div_factor=self.args.final_div_factor,
+                total_steps=t_total, anneal_strategy='linear'
+            )
+        elif self.args.lr_scheduler == "linear":
+            scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=self.args.warmup_steps, num_training_steps=t_total)
+        elif self.args.lr_scheulder == "polydecay":
+            scheduler = get_polynomial_decay_schedule_with_warmup(optimizer, self.args.warmup_steps, t_total, lr_end=self.args.lr / 5)
+        else:
+            raise ValueError
         return [optimizer], [{"scheduler": scheduler, "interval": "step"}]
 
     def forward(self, input_ids, attention_mask, token_type_ids):

@@ -7,22 +7,31 @@ import torch
 import torch.nn.functional as F
 
 
-def transform_predictions_to_labels(sequence_input_lst, idx2label_map, input_type="logit"):
+def transform_predictions_to_labels(sequence_input_lst, wordpiece_mask, idx2label_map, input_type="logit"):
     """
     shape:
         sequence_input_lst: [batch_size, seq_len, num_labels]
+        wordpiece_mask: [batch_size, seq_len, ]
     """
+    wordpiece_mask = wordpiece_mask.detach().cpu().numpy().tolist()
     if input_type == "logit":
         label_sequence = torch.argmax(F.softmax(sequence_input_lst, dim=2), dim=2).detach().cpu().numpy().tolist()
-        output_label_sequence = [[idx2label_map[item] for item in tmp_label_lst] for tmp_label_lst in label_sequence]
     elif input_type == "prob":
         label_sequence = torch.argmax(sequence_input_lst, dim=2).detach().cpu().numpy().tolist()
-        output_label_sequence = [[idx2label_map[item] for item in tmp_label_lst] for tmp_label_lst in label_sequence]
     elif input_type == "label":
-        sequence_input_lst = sequence_input_lst.detach().cpu().numpy().tolist()
-        output_label_sequence = [[idx2label_map[item] for item in tmp_label_lst] for tmp_label_lst in sequence_input_lst]
+        label_sequence = sequence_input_lst.detach().cpu().numpy().tolist()
     else:
         raise ValueError
+    output_label_sequence = []
+    for tmp_idx_lst, tmp_label_lst in enumerate(label_sequence):
+        tmp_wordpiece_mask = wordpiece_mask[tmp_idx_lst]
+        tmp_label_seq = []
+        for tmp_idx, tmp_label in enumerate(tmp_label_lst):
+            if tmp_wordpiece_mask[tmp_idx] != -100:
+                tmp_label_seq.append(idx2label_map[tmp_label])
+            else:
+                tmp_label_seq.append(-100)
+        output_label_sequence.append(tmp_label_seq)
     return output_label_sequence
 
 
@@ -70,14 +79,16 @@ def get_entity_from_bmes_lst(label_list):
     tag_list = []
     stand_matrix = []
     for i in range(0, list_len):
-        # wordlabel = word_list[i]
-        current_label = label_list[i].upper()
+        if label_list[i] != -100:
+            current_label = label_list[i].upper()
+        else:
+            continue
+
         if begin_label in current_label:
             if index_tag != '':
                 tag_list.append(whole_tag + ',' + str(i-1))
             whole_tag = current_label.replace(begin_label,"",1) +'[' +str(i)
             index_tag = current_label.replace(begin_label,"",1)
-
         elif single_label in current_label:
             if index_tag != '':
                 tag_list.append(whole_tag + ',' + str(i-1))

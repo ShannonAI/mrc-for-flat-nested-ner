@@ -63,6 +63,8 @@ class BertSequenceLabeling(pl.LightningModule):
         self.tokenizer = AutoTokenizer.from_pretrained(args.bert_config_dir, use_fast=False, do_lower_case=args.do_lowercase)
         self.model = BertTagger.from_pretrained(args.bert_config_dir, config=bert_config)
         logging.info(str(args.__dict__ if isinstance(args, argparse.ArgumentParser) else args))
+        self.result_logger = logging.getLogger(__name__)
+        self.result_logger.setLevel(logging.INFO)
         self.loss_func = CrossEntropyLoss()
         self.span_f1 = TaggerSpanF1()
         self.chinese = args.chinese
@@ -131,19 +133,25 @@ class BertSequenceLabeling(pl.LightningModule):
         return self.model(input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
 
     def compute_loss(self, sequence_logits, sequence_labels, input_mask=None):
-        # if input_mask is not None:
-        #     masked_logits = torch.masked_select(sequence_logits, input_mask)
-        #     loss = self.loss_fct(sequence_logits.view(-1, self.num_labels), sequence_labels.view(-1))
-        # else:
-        loss = self.loss_func(sequence_logits.view(-1, self.num_labels), sequence_labels.view(-1))
+        if input_mask is not None:
+            # masked_logits = torch.masked_select(sequence_logits, input_mask)
+            # loss = self.loss_fct(sequence_logits.view(-1, self.num_labels), sequence_labels.view(-1))
+            active_loss = input_mask.view(-1) == 1
+            active_logits = sequence_logits.view(-1, self.num_labels)
+            active_labels = torch.where(
+                active_loss, sequence_labels.view(-1), torch.tensor(self.loss_func.ignore_index).type_as(sequence_labels)
+            )
+            loss = self.loss_func(active_logits, active_labels)
+        else:
+            loss = self.loss_func(sequence_logits.view(-1, self.num_labels), sequence_labels.view(-1))
         return loss
 
     def training_step(self, batch, batch_idx):
         tf_board_logs = {"lr": self.trainer.optimizers[0].param_groups[0]['lr']}
-        token_input_ids, token_type_ids, attention_mask, sequence_labels = batch
+        token_input_ids, token_type_ids, attention_mask, sequence_labels, is_wordpiece_mask = batch
 
         logits = self.model(token_input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
-        loss = self.compute_loss(logits, sequence_labels, token_type_ids)
+        loss = self.compute_loss(logits, sequence_labels, input_mask=attention_mask)
         tf_board_logs[f"train_loss"] = loss
 
         return {'loss': loss, 'log': tf_board_logs}
@@ -151,15 +159,15 @@ class BertSequenceLabeling(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         output = {}
 
-        token_input_ids, token_type_ids, attention_mask, sequence_labels = batch
+        token_input_ids, token_type_ids, attention_mask, sequence_labels, is_wordpiece_mask = batch
         batch_size = token_input_ids.shape[0]
         print(batch_size)
         logits = self.model(token_input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
-        loss = self.compute_loss(logits, sequence_labels, token_type_ids)
+        loss = self.compute_loss(logits, sequence_labels, input_mask=attention_mask)
         output[f"val_loss"] = loss
 
-        sequence_pred_lst = transform_predictions_to_labels(logits.view(batch_size, -1, len(self.task_labels)), self.task_idx2label, input_type="logit")
-        sequence_gold_lst = transform_predictions_to_labels(sequence_labels, self.task_idx2label, input_type="label")
+        sequence_pred_lst = transform_predictions_to_labels(logits.view(batch_size, -1, len(self.task_labels)), is_wordpiece_mask, self.task_idx2label, input_type="logit")
+        sequence_gold_lst = transform_predictions_to_labels(sequence_labels, is_wordpiece_mask, self.task_idx2label, input_type="label")
         span_f1_stats = self.span_f1(sequence_pred_lst, sequence_gold_lst)
         output["span_f1_stats"] = span_f1_stats
 
@@ -177,6 +185,8 @@ class BertSequenceLabeling(pl.LightningModule):
         tensorboard_logs[f"span_precision"] = span_precision
         tensorboard_logs[f"span_recall"] = span_recall
         tensorboard_logs[f"span_f1"] = span_f1
+        self.result_logger.info(f"EVAL INFO -> current_epoch is: {self.trainer.current_epoch}, current_global_step is: {self.trainer.global_step} ")
+        self.result_logger.info(f"EVAL INFO -> valid_f1 is: {span_f1}")
 
         return {'val_loss': avg_loss, 'log': tensorboard_logs}
 

@@ -17,12 +17,30 @@ def tagger_collate_to_max_length(batch: List[List[torch.Tensor]]) -> List[torch.
     max_length = max(x[0].shape[0] for x in batch)
     output = []
 
-    for field_idx in range(4):
+    for field_idx in range(3):
+        # 0 -> tokens
+        # 1 -> token_type_ids
+        # 2 -> attention_mask
         pad_output = torch.full([batch_size, max_length], 0, dtype=batch[0][field_idx].dtype)
         for sample_idx in range(batch_size):
             data = batch[sample_idx][field_idx]
             pad_output[sample_idx][: data.shape[0]] = data
         output.append(pad_output)
+
+    # 3 -> sequence_label
+    # -100 is ignore_index in the cross-entropy loss function.
+    pad_output = torch.full([batch_size, max_length], -100, dtype=batch[0][3].dtype)
+    for sample_idx in range(batch_size):
+        data = batch[sample_idx][3]
+        pad_output[sample_idx][: data.shape[0]] = data
+    output.append(pad_output)
+
+    # 4 -> is word_piece_label
+    pad_output = torch.full([batch_size, max_length], -100, dtype=batch[0][4].dtype)
+    for sample_idx in range(batch_size):
+        data = batch[sample_idx][4]
+        pad_output[sample_idx][: data.shape[0]] = data
+    output.append(pad_output)
 
     return output
 
