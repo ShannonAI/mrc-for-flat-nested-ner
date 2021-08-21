@@ -83,6 +83,9 @@ class TaggerNERDataset(Dataset):
         tokenizer: BertTokenizer
         max_length: int, max length of query+context
         is_chinese: is chinese dataset
+    Note:
+        https://github.com/huggingface/transformers/blob/143738214cb83e471f3a43652617c8881370342c/examples/pytorch/token-classification/run_ner.py#L362
+        https://github.com/huggingface/transformers/blob/143738214cb83e471f3a43652617c8881370342c/src/transformers/models/bert/modeling_bert.py#L1739
     """
     def __init__(self, data_path, tokenizer: AutoTokenizer, dataset_signature, max_length: int = 512,
                  is_chinese=False, pad_to_maxlen=False, tagging_schema="BMESO", ):
@@ -118,7 +121,7 @@ class TaggerNERDataset(Dataset):
                     tmp_label_lst = [label_item] + [upgrade_label for idx in range((len_wordpiece - 1))]
                     wordpiece_label_lst.extend(tmp_label_lst)
                 elif "M" == entity_pos or "I" == entity_pos:
-                    upgrade_label =  entity_pos+"-"+entity_cate
+                    upgrade_label = entity_pos+"-"+entity_cate
                     tmp_label_lst = len_wordpiece * [upgrade_label]
                     wordpiece_label_lst.extend(tmp_label_lst)
                 elif "E" == entity_pos:
