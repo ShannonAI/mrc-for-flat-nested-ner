@@ -4,7 +4,6 @@
 # file: bert_tagger.py
 #
 
-import torch
 import torch.nn as nn
 from transformers import BertModel, BertPreTrainedModel
 from models.classifier import MultiNonLinearClassifier, SingleLinearClassifier

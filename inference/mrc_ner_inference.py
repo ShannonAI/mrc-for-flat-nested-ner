@@ -7,7 +7,7 @@ import os
 import torch
 import argparse
 from torch.utils.data import DataLoader
-from utils.radom_seed import set_random_seed
+from utils.random_seed import set_random_seed
 set_random_seed(0)
 from train.mrc_ner_trainer import BertLabeling
 from tokenizers import BertWordPieceTokenizer

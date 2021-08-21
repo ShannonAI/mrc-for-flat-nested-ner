@@ -9,7 +9,7 @@ import argparse
 import logging
 from typing import Dict
 from collections import namedtuple
-from utils.radom_seed import set_random_seed
+from utils.random_seed import set_random_seed
 set_random_seed(0)
 
 import torch

@@ -1,5 +1,7 @@
-# encoding: utf-8
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
+# file: classifier.py
 
 import torch.nn as nn
 from torch.nn import functional as F

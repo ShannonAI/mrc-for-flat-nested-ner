@@ -1,11 +1,13 @@
-# encoding: utf-8
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
+# file: bert_query_ner.py
 
 import torch
 import torch.nn as nn
 from transformers import BertModel, BertPreTrainedModel
 
-from models.classifier import MultiNonLinearClassifier, SingleLinearClassifier
+from models.classifier import MultiNonLinearClassifier
 
 
 class BertQueryNER(BertPreTrainedModel):

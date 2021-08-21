@@ -1,5 +1,7 @@
-# encoding: utf-8
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
+# file: msra2mrc.py
 
 import os
 from utils.bmes_decode import bmes_decode

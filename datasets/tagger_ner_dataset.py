@@ -117,35 +117,6 @@ class TaggerNERDataset(Dataset):
                 wordpiece_token_lst.extend(tmp_token_lst)
                 tmp_label_lst = [label_item] + [-100 for idx in range((len_wordpiece - 1))]
                 wordpiece_label_lst.extend(tmp_label_lst)
-            #
-            # else:
-            #     wordpiece_token_lst.extend(tmp_token_lst)
-            #     entity_pos, entity_cate = label_item.split("-")
-            #     len_wordpiece = len(wordpiece_token_lst)
-            #     if "B" == entity_pos:
-            #         upgrade_label = "M-"+entity_cate
-            #         tmp_label_lst = [label_item] + [upgrade_label for idx in range((len_wordpiece - 1))]
-            #         wordpiece_label_lst.extend(tmp_label_lst)
-            #     elif "M" == entity_pos or "I" == entity_pos:
-            #         upgrade_label = entity_pos+"-"+entity_cate
-            #         tmp_label_lst = len_wordpiece * [upgrade_label]
-            #         wordpiece_label_lst.extend(tmp_label_lst)
-            #     elif "E" == entity_pos:
-            #         upgrade_label = "M-"+entity_cate
-            #         tmp_label_lst = [upgrade_label for idx in range((len_wordpiece - 1))] + [label_item]
-            #         wordpiece_label_lst.extend(tmp_label_lst)
-            #     elif "O" == entity_pos:
-            #         upgrade_label = "O"
-            #         tmp_label_lst = len_wordpiece * [upgrade_label]
-            #         wordpiece_label_lst.extend(tmp_label_lst)
-            #     elif "S" == entity_pos:
-            #         upgrade_label_s = "B-"+entity_cate
-            #         upgrade_label_m = "M-"+entity_cate
-            #         upgrade_label_e = "E-"+entity_cate
-            #         tmp_label_lst = [upgrade_label_s] + [upgrade_label_m for idx in range((len_wordpiece - 2))] + [upgrade_label_e]
-            #         wordpiece_label_lst.extend(tmp_label_lst)
-            #     else:
-            #         raise ValueError("entity tagging schema should be BMESO OR BIESO")
 
         if len(wordpiece_token_lst) > self.max_length - 2:
             wordpiece_token_lst = wordpiece_token_lst[: self.max_length-2]

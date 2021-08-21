@@ -3,7 +3,6 @@
 
 # file: tagger_span_f1.py
 
-
 from pytorch_lightning.metrics.metric import TensorMetric
 from metrics.functional.tagger_span_f1 import compute_tagger_span_f1
 

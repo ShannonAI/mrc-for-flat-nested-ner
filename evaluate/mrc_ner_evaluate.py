@@ -9,7 +9,7 @@
 import sys
 from pytorch_lightning import Trainer
 from train.mrc_ner_trainer import BertLabeling
-from utils.radom_seed import set_random_seed
+from utils.random_seed import set_random_seed
 
 set_random_seed(0)
 

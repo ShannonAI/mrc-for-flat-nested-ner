@@ -27,7 +27,7 @@ from metrics.query_span_f1 import QuerySpanF1
 from models.bert_query_ner import BertQueryNER
 from models.model_config import BertQueryNerConfig
 from utils.get_parser import get_parser
-from utils.radom_seed import set_random_seed
+from utils.random_seed import set_random_seed
 
 set_random_seed(0)
 

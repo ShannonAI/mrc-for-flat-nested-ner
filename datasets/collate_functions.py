@@ -1,4 +1,7 @@
-# encoding: utf-8
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# file: collate_functions.py
 
 import torch
 from typing import List
