@@ -87,6 +87,8 @@ class BertSequenceLabeling(pl.LightningModule):
         parser.add_argument("--do_lowercase", action="store_true", )
         parser.add_argument("--data_file_suffix", type=str, default=".char.bmes")
         parser.add_argument("--lr_scheulder", type=str, default="polydecay")
+        parser.add_argument("--warmup_proportion", default=0.1, type=float, help="Proportion of training to perform linear learning rate warmup for.")
+
         return parser
 
     def configure_optimizers(self):
@@ -116,15 +118,16 @@ class BertSequenceLabeling(pl.LightningModule):
             raise ValueError("Optimizer type does not exist.")
         num_gpus = len([x for x in str(self.args.gpus).split(",") if x.strip()])
         t_total = (len(self.train_dataloader()) // (self.args.accumulate_grad_batches * num_gpus) + 1) * self.args.max_epochs
+        warmup_steps = int(self.args.warmup_proportion * t_total)
         if self.args.lr_scheduler == "onecycle":
             scheduler = torch.optim.lr_scheduler.OneCycleLR(
-                optimizer, max_lr=self.args.lr, pct_start=float(self.args.warmup_steps/t_total),
+                optimizer, max_lr=self.args.lr, pct_start=float(warmup_steps/t_total),
                 final_div_factor=self.args.final_div_factor,
                 total_steps=t_total, anneal_strategy='linear')
         elif self.args.lr_scheduler == "linear":
-            scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=self.args.warmup_steps, num_training_steps=t_total)
+            scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=warmup_steps, num_training_steps=t_total)
         elif self.args.lr_scheulder == "polydecay":
-            scheduler = get_polynomial_decay_schedule_with_warmup(optimizer, self.args.warmup_steps, t_total, lr_end=self.args.lr / self.args.polydecay_ratio)
+            scheduler = get_polynomial_decay_schedule_with_warmup(optimizer, warmup_steps, t_total, lr_end=self.args.lr / self.args.polydecay_ratio)
         else:
             raise ValueError
         return [optimizer], [{"scheduler": scheduler, "interval": "step"}]
@@ -134,8 +137,6 @@ class BertSequenceLabeling(pl.LightningModule):
 
     def compute_loss(self, sequence_logits, sequence_labels, input_mask=None):
         if input_mask is not None:
-            # masked_logits = torch.masked_select(sequence_logits, input_mask)
-            # loss = self.loss_fct(sequence_logits.view(-1, self.num_labels), sequence_labels.view(-1))
             active_loss = input_mask.view(-1) == 1
             active_logits = sequence_logits.view(-1, self.num_labels)
             active_labels = torch.where(
