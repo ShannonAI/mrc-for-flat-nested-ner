@@ -11,17 +11,16 @@ from torch.utils.data import Dataset
 def get_labels(data_sign):
     """gets the list of labels for this data set."""
     if data_sign == "zh_onto":
-        return ["S-GPE", "B-GPE", "M-GPE", "E-GPE",
+        return ["O", "S-GPE", "B-GPE", "M-GPE", "E-GPE",
                 "S-LOC", "B-LOC", "M-LOC", "E-LOC",
                 "S-PER", "B-PER", "M-PER", "E-PER",
-                "S-ORG", "B-ORG", "M-ORG", "E-ORG",
-                "O"]
+                "S-ORG", "B-ORG", "M-ORG", "E-ORG",]
     elif data_sign == "zh_msra":
-        return ["S-NS", "B-NS", "M-NS", "E-NS",
+        return ["O", "S-NS", "B-NS", "M-NS", "E-NS",
                 "S-NR", "B-NR", "M-NR", "E-NR",
-                "S-NT", "B-NT", "M-NT", "E-NT", "O"]
+                "S-NT", "B-NT", "M-NT", "E-NT"]
     elif data_sign == "en_onto":
-        return ["S-LAW", "B-LAW", "M-LAW", "E-LAW",
+        return ["O", "S-LAW", "B-LAW", "M-LAW", "E-LAW",
                 "S-EVENT", "B-EVENT", "M-EVENT", "E-EVENT",
                 "S-CARDINAL", "B-CARDINAL", "M-CARDINAL", "E-CARDINAL",
                 "S-FAC", "B-FAC", "M-FAC", "E-FAC",
@@ -38,14 +37,12 @@ def get_labels(data_sign):
                 "S-MONEY", "B-MONEY", "M-MONEY", "E-MONEY",
                 "S-PERSON", "B-PERSON", "M-PERSON", "E-PERSON",
                 "S-GPE", "B-GPE", "M-GPE", "E-GPE",
-                "S-PRODUCT", "B-PRODUCT", "M-PRODUCT", "E-PRODUCT",
-                "O"]
+                "S-PRODUCT", "B-PRODUCT", "M-PRODUCT", "E-PRODUCT"]
     elif data_sign == "en_conll03":
-        return ["S-ORG", "B-ORG", "M-ORG", "E-ORG",
+        return ["O", "S-ORG", "B-ORG", "M-ORG", "E-ORG",
                 "S-PER", "B-PER", "M-PER", "E-PER",
                 "S-LOC", "B-LOC", "M-LOC", "E-LOC",
-                "S-MISC", "B-MISC", "M-MISC", "E-MISC",
-                "O"]
+                "S-MISC", "B-MISC", "M-MISC", "E-MISC"]
     return ["0", "1"]
 
 
@@ -58,7 +55,7 @@ def load_data_in_conll(data_path):
         ([word5, word6, word7, wordd8], [label5, label6, label7, label8])]
     """
     dataset = []
-    with open(data_path, "r") as f:
+    with open(data_path, "r", encoding="utf-8") as f:
         datalines = f.readlines()
     sentence, labels = [], []
 
@@ -71,7 +68,6 @@ def load_data_in_conll(data_path):
             word, tag = line.split(" ")
             sentence.append(word)
             labels.append(tag)
-
     return dataset
 
 

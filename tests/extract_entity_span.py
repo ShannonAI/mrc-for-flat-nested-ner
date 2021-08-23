@@ -64,14 +64,8 @@ if __name__ == "__main__":
     label_lst = ["B-PER", "M-PER", "M-PER", "E-PER", "O", "O", "B-ORG", "M-ORG", "M-ORG", "E-ORG", "B-PER", "M-PER", "M-PER", "M-PER"]
     span_results = get_entity_from_bmes_lst(label_lst)
     print(span_results)
-    print(label_lst[0:3+1])
-    print(label_lst[6:10])
-    print(label_lst[10])
 
     label_lst = ["B-PER", "M-PER", -100, -100, "M-PER", "E-PER", -100,  "O", "O", -100, "B-ORG", -100, "M-ORG", "M-ORG", "E-ORG", "B-PER", "M-PER",
                  "M-PER", "M-PER"]
     span_results = get_entity_from_bmes_lst(label_lst)
     print(span_results)
-    print(label_lst[0:6])
-    print(label_lst[10:15])
-    print(label_lst[15])

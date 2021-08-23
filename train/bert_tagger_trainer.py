@@ -237,11 +237,11 @@ class BertSequenceLabeling(pl.LightningModule):
         return dataloader
 
 
-def find_best_checkpoint_on_dev(output_dir: str, log_file: str = "eval_result_log.txt", only_keep_the_best_ckpt: bool = True):
+def find_best_checkpoint_on_dev(output_dir: str, log_file: str = "eval_result_log.txt", only_keep_the_best_ckpt: bool = False):
     with open(os.path.join(output_dir, log_file)) as f:
         log_lines = f.readlines()
 
-    F1_PATTERN = re.compile(r"val_f1 reached \d+\.\d* \(best")
+    F1_PATTERN = re.compile(r"span_f1 reached \d+\.\d* \(best")
     # val_f1 reached 0.00000 (best 0.00000)
     CKPT_PATTERN = re.compile(r"saving model to \S+ as top")
     checkpoint_info_lines = []
@@ -254,7 +254,7 @@ def find_best_checkpoint_on_dev(output_dir: str, log_file: str = "eval_result_lo
     best_checkpoint_on_dev = ""
     for checkpoint_info_line in checkpoint_info_lines:
         current_f1 = float(
-            re.findall(F1_PATTERN, checkpoint_info_line)[0].replace("val_f1 reached ", "").replace(" (best", ""))
+            re.findall(F1_PATTERN, checkpoint_info_line)[0].replace("span_f1 reached ", "").replace(" (best", ""))
         current_ckpt = re.findall(CKPT_PATTERN, checkpoint_info_line)[0].replace("saving model to ", "").replace(
             " as top", "")
 
@@ -299,13 +299,13 @@ def main():
 
     # after training, use the model checkpoint which achieves the best f1 score on dev set to compute the f1 on test set.
     best_f1_on_dev, path_to_best_checkpoint = find_best_checkpoint_on_dev(args.output_dir,)
-    trainer.result_logger.info("=&" * 20)
-    trainer.result_logger.info(f"Best F1 on DEV is {best_f1_on_dev}")
-    trainer.result_logger.info(f"Best checkpoint on DEV set is {path_to_best_checkpoint}")
+    model.result_logger.info("=&" * 20)
+    model.result_logger.info(f"Best F1 on DEV is {best_f1_on_dev}")
+    model.result_logger.info(f"Best checkpoint on DEV set is {path_to_best_checkpoint}")
     checkpoint = torch.load(path_to_best_checkpoint)
-    trainer.load_state_dict(checkpoint['state_dict'])
-    trainer.test(trainer)
-    trainer.result_logger.info("=&" * 20)
+    model.load_state_dict(checkpoint['state_dict'])
+    trainer.test(model)
+    model.result_logger.info("=&" * 20)
 
 
 if __name__ == '__main__':

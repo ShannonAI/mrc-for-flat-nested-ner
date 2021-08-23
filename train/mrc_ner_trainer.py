@@ -4,6 +4,7 @@
 # file: mrc_ner_trainer.py
 
 import os
+import re
 import argparse
 import logging
 from collections import namedtuple
@@ -133,7 +134,7 @@ class BertLabeling(pl.LightningModule):
             )
         elif self.args.lr_scheduler == "linear":
             scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=self.args.warmup_steps, num_training_steps=t_total)
-        elif self.args.lr_scheulder == "polydecay":
+        elif self.args.lr_scheduler == "polydecay":
             scheduler = get_polynomial_decay_schedule_with_warmup(optimizer, self.args.warmup_steps, t_total, lr_end=self.args.lr / 5)
         else:
             raise ValueError
@@ -325,6 +326,36 @@ class BertLabeling(pl.LightningModule):
 
         return dataloader
 
+def find_best_checkpoint_on_dev(output_dir: str, log_file: str = "eval_result_log.txt", only_keep_the_best_ckpt: bool = False):
+    with open(os.path.join(output_dir, log_file)) as f:
+        log_lines = f.readlines()
+
+    F1_PATTERN = re.compile(r"span_f1 reached \d+\.\d* \(best")
+    # val_f1 reached 0.00000 (best 0.00000)
+    CKPT_PATTERN = re.compile(r"saving model to \S+ as top")
+    checkpoint_info_lines = []
+    for log_line in log_lines:
+        if "saving model to" in log_line:
+            checkpoint_info_lines.append(log_line)
+    # example of log line
+    # Epoch 00000: val_f1 reached 0.00000 (best 0.00000), saving model to /data/xiaoya/outputs/0117/debug_5_12_2e-5_0.001_0.001_275_0.1_1_0.25/checkpoint/epoch=0.ckpt as top 20
+    best_f1_on_dev = 0
+    best_checkpoint_on_dev = ""
+    for checkpoint_info_line in checkpoint_info_lines:
+        current_f1 = float(
+            re.findall(F1_PATTERN, checkpoint_info_line)[0].replace("span_f1 reached ", "").replace(" (best", ""))
+        current_ckpt = re.findall(CKPT_PATTERN, checkpoint_info_line)[0].replace("saving model to ", "").replace(
+            " as top", "")
+
+        if current_f1 >= best_f1_on_dev:
+            if only_keep_the_best_ckpt and len(best_checkpoint_on_dev) != 0:
+                os.remove(best_checkpoint_on_dev)
+            best_f1_on_dev = current_f1
+            best_checkpoint_on_dev = current_ckpt
+
+    return best_f1_on_dev, best_checkpoint_on_dev
+
+
 def main():
     """main"""
     parser = get_parser()
@@ -358,6 +389,16 @@ def main():
     )
 
     trainer.fit(model)
+
+    # after training, use the model checkpoint which achieves the best f1 score on dev set to compute the f1 on test set.
+    best_f1_on_dev, path_to_best_checkpoint = find_best_checkpoint_on_dev(args.default_root_dir, )
+    model.result_logger.info("=&" * 20)
+    model.result_logger.info(f"Best F1 on DEV is {best_f1_on_dev}")
+    model.result_logger.info(f"Best checkpoint on DEV set is {path_to_best_checkpoint}")
+    checkpoint = torch.load(path_to_best_checkpoint)
+    model.load_state_dict(checkpoint['state_dict'])
+    trainer.test(model)
+    model.result_logger.info("=&" * 20)
 
 
 if __name__ == '__main__':
