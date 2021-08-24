@@ -191,11 +191,37 @@ class BertSequenceLabeling(pl.LightningModule):
         return {'val_loss': avg_loss, 'log': tensorboard_logs}
 
     def test_step(self, batch, batch_idx):
-        """"""
-        return self.validation_step(batch, batch_idx)
+        output = {}
+
+        token_input_ids, token_type_ids, attention_mask, sequence_labels, is_wordpiece_mask = batch
+        batch_size = token_input_ids.shape[0]
+        logits = self.model(token_input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
+        loss = self.compute_loss(logits, sequence_labels, input_mask=attention_mask)
+        output[f"test_loss"] = loss
+
+        sequence_pred_lst = transform_predictions_to_labels(logits.view(batch_size, -1, len(self.task_labels)),
+                                                            is_wordpiece_mask, self.task_idx2label, input_type="logit")
+        sequence_gold_lst = transform_predictions_to_labels(sequence_labels, is_wordpiece_mask, self.task_idx2label,
+                                                            input_type="label")
+        span_f1_stats = self.span_f1(sequence_pred_lst, sequence_gold_lst)
+        output["span_f1_stats"] = span_f1_stats
+        return output
 
     def test_epoch_end(self, outputs) -> Dict[str, Dict[str, Tensor]]:
-        return self.validation_epoch_end(outputs)
+        avg_loss = torch.stack([x['test_loss'] for x in outputs]).mean()
+        tensorboard_logs = {'test_loss': avg_loss}
+
+        all_counts = torch.stack([x[f'span_f1_stats'] for x in outputs]).sum(0)
+        span_tp, span_fp, span_fn = all_counts
+        span_recall = span_tp / (span_tp + span_fn + 1e-10)
+        span_precision = span_tp / (span_tp + span_fp + 1e-10)
+        span_f1 = span_precision * span_recall * 2 / (span_recall + span_precision + 1e-10)
+        tensorboard_logs[f"span_precision"] = span_precision
+        tensorboard_logs[f"span_recall"] = span_recall
+        tensorboard_logs[f"span_f1"] = span_f1
+        self.result_logger.info(f"EVAL INFO -> test_f1 is: {span_f1}")
+
+        return {'test_loss': avg_loss, 'log': tensorboard_logs}
 
     def train_dataloader(self) -> DataLoader:
         return self.get_dataloader("train")
