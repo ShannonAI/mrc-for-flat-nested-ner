@@ -3,7 +3,7 @@
 
 # file: zh_msra.sh
 
-TIME=0823
+TIME=0824
 FILE=msra_bert_tagger
 REPO_PATH=/data/xiaoya/workspace/mrc-for-flat-nested-ner-github
 export PYTHONPATH="$PYTHONPATH:$REPO_PATH"
@@ -26,7 +26,7 @@ DATA_SIGN=zh_msra
 WARMUP_PROPORTION=0.02
 
 
-OUTPUT_DIR="/data/xiaoya/outputs/mrc_ner_baseline/${TIME}/${FILE}_chinese_lr${LR}_drop${MRC_DROPOUT}_norm${MAXNORM}_weight${SPAN_WEIGHT}_warmup${WARMUP}_maxlen${MAXLEN}"
+OUTPUT_DIR=/data/xiaoya/outputs/mrc_ner_baseline/${TIME}/${FILE}_chinese_lr${LR}_drop${MRC_DROPOUT}_norm${MAXNORM}_weight${SPAN_WEIGHT}_warmup${WARMUP}_maxlen${MAXLEN}
 mkdir -p $OUTPUT_DIR
 
 

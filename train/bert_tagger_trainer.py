@@ -162,7 +162,6 @@ class BertSequenceLabeling(pl.LightningModule):
 
         token_input_ids, token_type_ids, attention_mask, sequence_labels, is_wordpiece_mask = batch
         batch_size = token_input_ids.shape[0]
-        print(batch_size)
         logits = self.model(token_input_ids, token_type_ids=token_type_ids, attention_mask=attention_mask)
         loss = self.compute_loss(logits, sequence_labels, input_mask=attention_mask)
         output[f"val_loss"] = loss
