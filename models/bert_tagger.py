@@ -20,7 +20,7 @@ class BertTagger(BertPreTrainedModel):
         if config.classifier_sign == "single_linear":
             self.classifier = SingleLinearClassifier(config.hidden_size, self.num_labels)
         elif config.classifier_sign == "multi_nonlinear":
-            self.classifier = MultiNonLinearClassifier(config.hidden_size, self.num_labels, config.classifier_dropout)
+            self.classifier = MultiNonLinearClassifier(config.hidden_size, self.num_labels, config.classifier_dropout, act_func=config.classifier_act_func)
         else:
             raise ValueError
 

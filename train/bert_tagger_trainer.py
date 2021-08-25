@@ -59,7 +59,9 @@ class BertSequenceLabeling(pl.LightningModule):
                                                        hidden_dropout_prob=args.bert_dropout,
                                                        attention_probs_dropout_prob=args.bert_dropout,
                                                        classifier_dropout=args.classifier_dropout,
-                                                       num_labels=self.num_labels)
+                                                       num_labels=self.num_labels,
+                                                       classifier_act_func=args.classifier_act_func)
+
         self.tokenizer = AutoTokenizer.from_pretrained(args.bert_config_dir, use_fast=False, do_lower_case=args.do_lowercase)
         self.model = BertTagger.from_pretrained(args.bert_config_dir, config=bert_config)
         logging.info(str(args.__dict__ if isinstance(args, argparse.ArgumentParser) else args))
@@ -77,6 +79,7 @@ class BertSequenceLabeling(pl.LightningModule):
         parser.add_argument("--eval_batch_size", type=int, default=8, help="batch size")
         parser.add_argument("--bert_dropout", type=float, default=0.1, help="bert dropout rate")
         parser.add_argument("--classifier_dropout", type=float, default=0.1)
+        parser.add_argument("--classifier_act_func", type=str, default="gelu")
         parser.add_argument("--chinese", action="store_true", help="is chinese dataset")
         parser.add_argument("--optimizer", choices=["adamw", "torch.adam"], default="adamw", help="loss type")
         parser.add_argument("--final_div_factor", type=float, default=1e4, help="final div factor of linear decay scheduler")
@@ -219,7 +222,7 @@ class BertSequenceLabeling(pl.LightningModule):
         tensorboard_logs[f"span_precision"] = span_precision
         tensorboard_logs[f"span_recall"] = span_recall
         tensorboard_logs[f"span_f1"] = span_f1
-        self.result_logger.info(f"EVAL INFO -> test_f1 is: {span_f1}")
+        self.result_logger.info(f"EVAL INFO -> test_f1 is: {span_f1}, test_precision is: {span_precision}, test_recall is: {span_recall}")
 
         return {'test_loss': avg_loss, 'log': tensorboard_logs}
 

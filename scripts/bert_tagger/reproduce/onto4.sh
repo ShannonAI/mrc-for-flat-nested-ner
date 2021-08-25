@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # -*- coding: utf-8 -*-
 
-# file: zh_onto4.sh
+# file: onto4.sh
 
 
 TIME=0823

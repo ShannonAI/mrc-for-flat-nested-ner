@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # -*- coding: utf-8 -*-
 
-# file: zh_msra.sh
+# file: msra.sh
 
 TIME=0824
 FILE=msra_bert_tagger

@@ -16,28 +16,28 @@ from datasets.tagger_ner_dataset import load_data_in_conll
 from metrics.functional.tagger_span_f1 import get_entity_from_bmes_lst
 
 
-def count_entity_under_mrc_ner_format(data_path):
+def count_entity_with_mrc_ner_format(data_path):
     """
     mrc_data_example:
-        {
-    "context": "The chemiluminescent ( CL ) response of interferon - gamma - treated U937 ( IFN - U937 ) cells to sensitized target cells has been used to detect red cell , platelet and granulocyte antibodies .",
-    "end_position": [
-      16,
-      18
-    ],
-    "entity_label": "cell_line",
-    "impossible": false,
-    "qas_id": "532.1",
-    "query": "cell line",
-    "span_position": [
-      "14;16",
-      "7;18"
-    ],
-    "start_position": [
-      14,
-      7
-    ]
-    },
+    {
+        "context": "The chemiluminescent ( CL ) response of interferon - gamma - treated U937 ( IFN - U937 ) cells to sensitized target cells has been used to detect red cell , platelet and granulocyte antibodies .",
+        "end_position": [
+        16,
+        18
+        ],
+        "entity_label": "cell_line",
+        "impossible": false,
+        "qas_id": "532.1",
+        "query": "cell line",
+        "span_position": [
+            "14;16",
+            "7;18"
+        ],
+        "start_position": [
+            14,
+            7
+            ]
+        }
     """
     entity_counter = {}
     with open(data_path, encoding="utf-8") as f:
@@ -55,7 +55,7 @@ def count_entity_under_mrc_ner_format(data_path):
     print(entity_counter)
 
 
-def count_entity_under_sequence_ner_format(data_path, is_nested=False):
+def count_entity_with_sequence_ner_format(data_path, is_nested=False):
     entity_counter = {}
     if not is_nested:
         data_lst = load_data_in_conll(data_path)
@@ -68,10 +68,11 @@ def count_entity_under_sequence_ner_format(data_path, is_nested=False):
                     entity_counter[tmp_entity_type] = 1
                 else:
                     entity_counter[tmp_entity_type] += 1
-
         print("UNDER SEQ format ->")
         print(entity_counter)
-
+    else:
+        # genia, ace04, ace05
+        pass
 
 
 def main(mrc_data_dir, seq_data_dir, seq_data_suffix="char.bmes", is_nested=False):
@@ -82,8 +83,8 @@ def main(mrc_data_dir, seq_data_dir, seq_data_suffix="char.bmes", is_nested=Fals
         print("$"*10)
         print(f"{data_type}")
         print("$"*10)
-        count_entity_under_mrc_ner_format(mrc_data_path)
-        count_entity_under_sequence_ner_format(seq_data_path, is_nested=is_nested)
+        count_entity_with_mrc_ner_format(mrc_data_path)
+        count_entity_with_sequence_ner_format(seq_data_path, is_nested=is_nested)
 
 
 if __name__ == "__main__":
