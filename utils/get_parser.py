@@ -13,6 +13,7 @@ def get_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Training")
 
     parser.add_argument("--data_dir", type=str, required=True, help="data dir")
+    parser.add_argument("--max_keep_ckpt", default=3, type=int, help="the number of keeping ckpt max.")
     parser.add_argument("--bert_config_dir", type=str, required=True, help="bert config dir")
     parser.add_argument("--pretrained_checkpoint", default="", type=str, help="pretrained checkpoint path")
     parser.add_argument("--max_length", type=int, default=128, help="max length of dataset")
