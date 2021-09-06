@@ -51,7 +51,7 @@ class EnglishOntoDataConfig:
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_path, use_fast=False)
         self.max_length = 512
         self.is_chinese = False
-        self.threshold = 275
+        self.threshold = 256
         self.data_sign = "en_onto"
         self.data_file_suffix = "word.bmes"
 
@@ -127,8 +127,8 @@ if __name__ == '__main__':
     data_sign = "en_onto"
     # english ontonotes 5.0
     # test: 172
-    # dev:
-    # train:
+    # dev: 407
+    # train: 306
     count_max_length(data_sign)
 
 

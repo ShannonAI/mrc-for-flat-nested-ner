@@ -17,7 +17,8 @@ class BertQueryNER(BertPreTrainedModel):
 
         self.start_outputs = nn.Linear(config.hidden_size, 1)
         self.end_outputs = nn.Linear(config.hidden_size, 1)
-        self.span_embedding = MultiNonLinearClassifier(config.hidden_size * 2, 1, config.mrc_dropout)
+        self.span_embedding = MultiNonLinearClassifier(config.hidden_size * 2, 1, config.mrc_dropout,
+                                                       intermediate_hidden_size=config.classifier_intermediate_hidden_size)
 
         self.hidden_size = config.hidden_size
 

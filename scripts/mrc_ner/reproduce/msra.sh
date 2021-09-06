@@ -13,6 +13,7 @@ SPAN_WEIGHT=0.1
 DROPOUT=0.2
 LR=8e-6
 MAXLEN=128
+INTER_HIDDEN=768
 
 OUTPUT_DIR=/mnt/mrc/train_logs/zh_msra/zh_msra_bertlarge_lr${LR}20200913_dropout${DROPOUT}_maxlen${MAXLEN}
 
@@ -35,5 +36,6 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 python ${REPO_PATH}/train/mrc_ner_trainer.py \
 --mrc_dropout $DROPOUT \
 --max_epochs 20 \
 --weight_span $SPAN_WEIGHT \
---span_loss_candidates "pred_and_gold"
+--span_loss_candidates "pred_and_gold" \
+--classifier_intermediate_hidden_size ${INTER_HIDDEN}
 

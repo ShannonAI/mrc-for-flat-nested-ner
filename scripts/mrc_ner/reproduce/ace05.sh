@@ -16,6 +16,7 @@ SPAN_WEIGHT=0.1
 WARMUP=0
 MAXLEN=128
 MAXNORM=1.0
+INTER_HIDDEN=1024
 
 OUTPUT_DIR=/userhome/xiaoya/outputs/mrc-ner/ace2005/large_${WARMUP}lr${LR}_drop${MRC_DROPOUT}_norm${MAXNORM}_weight${SPAN_WEIGHT}_warmup${WARMUP}_maxlen${MAXLEN}
 mkdir -p $OUTPUT_DIR
@@ -41,4 +42,5 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 python ${REPO_PATH}/train/mrc_ner_trainer.py \
 --warmup_steps $WARMUP \
 --max_length $MAXLEN \
 --gradient_clip_val $MAXNORM \
---optimizer "adamw"
+--optimizer "adamw" \
+--classifier_intermediate_hidden_size ${INTER_HIDDEN}

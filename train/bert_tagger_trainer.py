@@ -58,9 +58,11 @@ class BertSequenceLabeling(pl.LightningModule):
         bert_config = BertTaggerConfig.from_pretrained(args.bert_config_dir,
                                                        hidden_dropout_prob=args.bert_dropout,
                                                        attention_probs_dropout_prob=args.bert_dropout,
-                                                       classifier_dropout=args.classifier_dropout,
                                                        num_labels=self.num_labels,
-                                                       classifier_act_func=args.classifier_act_func)
+                                                       classifier_dropout=args.classifier_dropout,
+                                                       classifier_sign=args.classifier_sign,
+                                                       classifier_act_func=args.classifier_act_func,
+                                                       classifier_intermediate_hidden_size=args.classifier_intermediate_hidden_size)
 
         self.tokenizer = AutoTokenizer.from_pretrained(args.bert_config_dir, use_fast=False, do_lower_case=args.do_lowercase)
         self.model = BertTagger.from_pretrained(args.bert_config_dir, config=bert_config)
@@ -78,10 +80,12 @@ class BertSequenceLabeling(pl.LightningModule):
         parser.add_argument("--train_batch_size", type=int, default=8, help="batch size")
         parser.add_argument("--eval_batch_size", type=int, default=8, help="batch size")
         parser.add_argument("--bert_dropout", type=float, default=0.1, help="bert dropout rate")
+        parser.add_argument("--classifier_sign", type=str, default="multi_nonlinear")
         parser.add_argument("--classifier_dropout", type=float, default=0.1)
         parser.add_argument("--classifier_act_func", type=str, default="gelu")
+        parser.add_argument("--classifier_intermediate_hidden_size", type=int, default=1024)
         parser.add_argument("--chinese", action="store_true", help="is chinese dataset")
-        parser.add_argument("--optimizer", choices=["adamw", "torch.adam"], default="adamw", help="loss type")
+        parser.add_argument("--optimizer", choices=["adamw", "torch.adam"], default="adamw", help="optimizer type")
         parser.add_argument("--final_div_factor", type=float, default=1e4, help="final div factor of linear decay scheduler")
         parser.add_argument("--output_dir", type=str, default="", help="the path for saving intermediate model checkpoints.")
         parser.add_argument("--lr_scheduler", type=str, default="linear_decay", help="lr scheduler")
@@ -311,7 +315,7 @@ def main():
                                          map_location=torch.device('cpu'))["state_dict"])
     checkpoint_callback = ModelCheckpoint(
         filepath=args.output_dir,
-        save_top_k=20,
+        save_top_k=args.max_keep_ckpt,
         verbose=True,
         monitor="span_f1",
         period=-1,
@@ -320,9 +324,9 @@ def main():
     trainer = Trainer.from_argparse_args(
         args,
         checkpoint_callback=checkpoint_callback,
-        deterministic=True
+        deterministic=True,
+        default_root_dir=args.output_dir
     )
-
     trainer.fit(model)
 
     # after training, use the model checkpoint which achieves the best f1 score on dev set to compute the f1 on test set.

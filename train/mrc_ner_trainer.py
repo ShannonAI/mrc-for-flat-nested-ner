@@ -57,7 +57,9 @@ class BertLabeling(pl.LightningModule):
         bert_config = BertQueryNerConfig.from_pretrained(args.bert_config_dir,
                                                          hidden_dropout_prob=args.bert_dropout,
                                                          attention_probs_dropout_prob=args.bert_dropout,
-                                                         mrc_dropout=args.mrc_dropout)
+                                                         mrc_dropout=args.mrc_dropout,
+                                                         classifier_act_func = args.classifier_act_func,
+                                                         classifier_intermediate_hidden_size=args.classifier_intermediate_hidden_size)
 
         self.model = BertQueryNER.from_pretrained(args.bert_config_dir,
                                                   config=bert_config)
@@ -84,11 +86,13 @@ class BertLabeling(pl.LightningModule):
                             help="mrc dropout rate")
         parser.add_argument("--bert_dropout", type=float, default=0.1,
                             help="bert dropout rate")
+        parser.add_argument("--classifier_act_func", type=str, default="gelu")
+        parser.add_argument("--classifier_intermediate_hidden_size", type=int, default=1024)
         parser.add_argument("--weight_start", type=float, default=1.0)
         parser.add_argument("--weight_end", type=float, default=1.0)
         parser.add_argument("--weight_span", type=float, default=1.0)
         parser.add_argument("--flat", action="store_true", help="is flat ner")
-        parser.add_argument("--span_loss_candidates", choices=["all", "pred_and_gold", "gold"],
+        parser.add_argument("--span_loss_candidates", choices=["all", "pred_and_gold", "pred_gold_random", "gold"],
                             default="all", help="Candidates used to compute span loss")
         parser.add_argument("--chinese", action="store_true",
                             help="is chinese dataset")
@@ -164,6 +168,21 @@ class BertLabeling(pl.LightningModule):
             if self.span_loss_candidates == "gold":
                 match_candidates = ((start_labels.unsqueeze(-1).expand(-1, -1, seq_len) > 0)
                                     & (end_labels.unsqueeze(-2).expand(-1, seq_len, -1) > 0))
+            elif self.span_loss_candidates == "pred_gold_random":
+                gold_and_pred = torch.logical_or(
+                    (start_preds.unsqueeze(-1).expand(-1, -1, seq_len)
+                     & end_preds.unsqueeze(-2).expand(-1, seq_len, -1)),
+                    (start_labels.unsqueeze(-1).expand(-1, -1, seq_len)
+                     & end_labels.unsqueeze(-2).expand(-1, seq_len, -1))
+                )
+                data_generator = torch.Generator()
+                data_generator.manual_seed(0)
+                random_matrix = torch.empty(batch_size, seq_len, seq_len).uniform_(0, 1)
+                random_matrix = torch.bernoulli(random_matrix, generator=data_generator).long()
+                random_matrix = random_matrix.cuda()
+                match_candidates = torch.logical_or(
+                    gold_and_pred, random_matrix
+                )
             else:
                 match_candidates = torch.logical_or(
                     (start_preds.unsqueeze(-1).expand(-1, -1, seq_len)
@@ -376,7 +395,7 @@ def main():
 
     checkpoint_callback = ModelCheckpoint(
         filepath=args.default_root_dir,
-        save_top_k=10,
+        save_top_k=args.max_keep_ckpt,
         verbose=True,
         monitor="span_f1",
         period=-1,
@@ -385,7 +404,8 @@ def main():
     trainer = Trainer.from_argparse_args(
         args,
         checkpoint_callback=checkpoint_callback,
-        deterministic=True
+        deterministic=True,
+        default_root_dir=args.default_root_dir
     )
 
     trainer.fit(model)

@@ -15,6 +15,7 @@ SPAN_WEIGHT=0.1
 WARMUP=0
 MAXLEN=180
 MAXNORM=1.0
+INTER_HIDDEN=1024
 
 OUTPUT_DIR=/userhome/xiaoya/outputs/github_mrc/genia/large_lr${LR}_drop${MRC_DROPOUT}_norm${MAXNORM}_bsz32_hard_span_weight${SPAN_WEIGHT}_warmup${WARMUP}_maxlen${MAXLEN}
 mkdir -p $OUTPUT_DIR
@@ -40,5 +41,6 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 python ${REPO_PATH}/train/mrc_ner_trainer.py \
 --warmup_steps $WARMUP \
 --max_length $MAXLEN \
 --gradient_clip_val $MAXNORM \
---weight_decay 0.002
+--weight_decay 0.002 \
+--classifier_intermediate_hidden_size ${INTER_HIDDEN}
 

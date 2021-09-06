@@ -24,13 +24,13 @@ WEIGHT_DECAY=0.02
 OPTIM=torch.adam
 DATA_SIGN=en_conll03
 WARMUP_PROPORTION=0.01
-
+INTER_HIDDEN=1024
 
 OUTPUT_DIR=/userhome/xiaoya/outputs/mrc_ner_baseline/${TIME}/${FILE}_lr${LR}_drop${MRC_DROPOUT}_norm${MAXNORM}_weight${SPAN_WEIGHT}_warmup${WARMUP_PROPORTION}_maxlen${MAXLEN}
 mkdir -p $OUTPUT_DIR
 
 
-CUDA_VISIBLE_DEVICES=0 python3 ${REPO_PATH}/train/bert_tagger_trainer.py \
+CUDA_VISIBLE_DEVICES=1 python3 ${REPO_PATH}/train/bert_tagger_trainer.py \
 --gpus="1" \
 --progress_bar_refresh_rate 1 \
 --data_dir ${DATA_DIR} \
@@ -50,5 +50,6 @@ CUDA_VISIBLE_DEVICES=0 python3 ${REPO_PATH}/train/bert_tagger_trainer.py \
 --weight_decay ${WEIGHT_DECAY} \
 --data_file_suffix ${DATA_SUFFIX} \
 --optimizer ${OPTIM} \
---data_sign ${DATA_SIGN}
+--data_sign ${DATA_SIGN} \
+--classifier_intermediate_hidden_size ${INTER_HIDDEN}
 

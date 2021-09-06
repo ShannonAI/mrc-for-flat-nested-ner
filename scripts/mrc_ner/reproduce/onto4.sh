@@ -15,6 +15,7 @@ MAXLENGTH=128
 WEIGHT_SPAN=0.1
 lr=1e-5
 OPTIMIZER=adamw
+INTER_HIDDEN=768
 OUTPUT_DIR=/userhome/yuxian/train_logs/zh_onto/zh_onto_${OPTIMIZER}_lr${lr}_maxlen${MAXLENGTH}_spanw${WEIGHT_SPAN}
 mkdir -p $OUTPUT_DIR
 
@@ -39,5 +40,6 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 python ${REPO_PATH}/train/mrc_ner_trainer.py \
 --mrc_dropout 0.3 \
 --warmup_steps 5000 \
 --gradient_clip_val 5.0 \
---final_div_factor 20
+--final_div_factor 20 \
+--classifier_intermediate_hidden_size ${INTER_HIDDEN}
 

@@ -3,7 +3,7 @@
 
 # file: eval.sh
 
-REPO_PATH=/data/xiaoya/workspace/mrc-for-flat-nested-ner-github
+REPO_PATH=/data/xiaoya/workspace/mrc-for-flat-nested-ner
 export PYTHONPATH="$PYTHONPATH:$REPO_PATH"
 
 OUTPUT_DIR=/data/xiaoya/outputs/mrc_ner/ace2004/debug_lr3e-5_drop0.3_norm1.0_weight0.1_warmup0_maxlen100

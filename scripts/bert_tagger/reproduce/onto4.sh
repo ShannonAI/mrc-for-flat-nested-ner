@@ -4,12 +4,12 @@
 # file: onto4.sh
 
 
-TIME=0823
+TIME=0826
 FILE=onto_bert_tagger
-REPO_PATH=/data/xiaoya/workspace/mrc-for-flat-nested-ner-github
+REPO_PATH=/userhome/xiaoya/mrc-for-flat-nested-ner
 export PYTHONPATH="$PYTHONPATH:$REPO_PATH"
-DATA_DIR=/data/xiaoya/datasets/ner/zhontonotes4
-BERT_DIR=/data/nfsdata/nlp/BERT_BASE_DIR/chinese_L-12_H-768_A-12
+DATA_DIR=/userhome/xiaoya/dataset/tagger_ner_datasets/zhontonotes4
+BERT_DIR=/userhome/xiaoya/bert/chinese_bert
 
 BERT_DROPOUT=0.2
 LR=2e-5
@@ -24,9 +24,9 @@ WEIGHT_DECAY=0.02
 OPTIM=torch.adam
 DATA_SIGN=zh_onto
 WARMUP_PROPORTION=0.02
+INTER_HIDDEN=768
 
-
-OUTPUT_DIR=/data/xiaoya/outputs/mrc_ner_baseline/${TIME}/${FILE}_chinese_lr${LR}_drop${MRC_DROPOUT}_norm${MAXNORM}_weight${SPAN_WEIGHT}_warmup${WARMUP}_maxlen${MAXLEN}
+OUTPUT_DIR=/userhome/xiaoya/outputs/mrc_ner_baseline/${TIME}/${FILE}_chinese_lr${LR}_drop${MRC_DROPOUT}_norm${MAXNORM}_weight${SPAN_WEIGHT}_warmup${WARMUP}_maxlen${MAXLEN}
 mkdir -p $OUTPUT_DIR
 
 
@@ -51,4 +51,5 @@ CUDA_VISIBLE_DEVICES=1 python3 ${REPO_PATH}/train/bert_tagger_trainer.py \
 --data_file_suffix ${DATA_SUFFIX} \
 --optimizer ${OPTIM} \
 --data_sign ${DATA_SIGN} \
+--classifier_intermediate_hidden_size ${INTER_HIDDEN} \
 --chinese
