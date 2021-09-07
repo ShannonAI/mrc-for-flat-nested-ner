@@ -2,14 +2,15 @@
 # -*- coding: utf-8 -*-
 
 # file: conll03.sh
-
+# dev Span-F1: 96.61
+# test Span-F1: 92.74
 
 TIME=0824
 FILE=conll03_bert_tagger
-REPO_PATH=/userhome/xiaoya/mrc-for-flat-nested-ner
+REPO_PATH=/home/lixiaoya/mrc-for-flat-nested-ner
 export PYTHONPATH="$PYTHONPATH:$REPO_PATH"
-DATA_DIR=/userhome/xiaoya/dataset/tagger_ner_datasets/conll03_truecase_bmes
-BERT_DIR=/userhome/xiaoya/bert/bert_cased_large
+DATA_DIR=/data/lixiaoya/datasets/ner/en_conll03
+BERT_DIR=/data/lixiaoya/models/bert_cased_large
 
 BERT_DROPOUT=0.2
 LR=2e-5
@@ -26,7 +27,7 @@ DATA_SIGN=en_conll03
 WARMUP_PROPORTION=0.01
 INTER_HIDDEN=1024
 
-OUTPUT_DIR=/userhome/xiaoya/outputs/mrc_ner_baseline/${TIME}/${FILE}_lr${LR}_drop${MRC_DROPOUT}_norm${MAXNORM}_weight${SPAN_WEIGHT}_warmup${WARMUP_PROPORTION}_maxlen${MAXLEN}
+OUTPUT_DIR=/data/lixiaoya/outputs/mrc_ner_baseline/${TIME}/${FILE}_lr${LR}_drop${MRC_DROPOUT}_norm${MAXNORM}_weight${SPAN_WEIGHT}_warmup${WARMUP_PROPORTION}_maxlen${MAXLEN}
 mkdir -p $OUTPUT_DIR
 
 

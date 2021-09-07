@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # file: msra.sh
+# dev Span-F1:
+# test Span-F1: 95.15
 
 TIME=0826
 FILE=msra_bert_tagger
