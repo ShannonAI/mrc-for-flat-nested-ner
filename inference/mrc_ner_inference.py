@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# file: inference.py
+# file: mrc_ner_inference.py
 
 import os
 import torch
 import argparse
 from torch.utils.data import DataLoader
-from utils.radom_seed import set_random_seed
+from utils.random_seed import set_random_seed
 set_random_seed(0)
-from trainer import BertLabeling
+from train.mrc_ner_trainer import BertLabeling
 from tokenizers import BertWordPieceTokenizer
 from datasets.mrc_ner_dataset import MRCNERDataset
 from metrics.functional.query_span_f1 import extract_flat_spans, extract_nested_spans

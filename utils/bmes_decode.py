@@ -1,5 +1,7 @@
-# encoding: utf-8
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
+# file: bmes_decode.py
 
 from typing import Tuple, List
 

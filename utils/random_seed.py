@@ -1,4 +1,5 @@
-# encoding: utf-8
+# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
 # last update: xiaoya li
 # issue: https://github.com/PyTorchLightning/pytorch-lightning/issues/1868
 # set for trainer: https://pytorch-lightning.readthedocs.io/en/latest/trainer.html

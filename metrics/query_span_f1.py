@@ -1,8 +1,10 @@
-# encoding: utf-8
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
+# file: query_span_f1.py
 
 from pytorch_lightning.metrics.metric import TensorMetric
-from .functional.query_span_f1 import query_span_f1
+from metrics.functional.query_span_f1 import query_span_f1
 
 
 class QuerySpanF1(TensorMetric):

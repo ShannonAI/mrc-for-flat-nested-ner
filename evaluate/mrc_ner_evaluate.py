@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# file: evaluate.py
+# file: mrc_ner_evaluate.py
 # example command:
-# python3 evaluate.py /data/xiaoya/outputs/mrc_ner/ace2004/debug_lr3e-5_drop0.3_norm1.0_weight0.1_warmup0_maxlen100/epoch=0.ckpt \
+# python3 mrc_ner_evaluate.py /data/xiaoya/outputs/mrc_ner/ace2004/debug_lr3e-5_drop0.3_norm1.0_weight0.1_warmup0_maxlen100/epoch=0.ckpt \
 # /data/xiaoya/outputs/mrc_ner/ace2004/debug_lr3e-5_drop0.3_norm1.0_weight0.1_warmup0_maxlen100/lightning_logs/version_2/hparams.yaml
 
 import sys
 from pytorch_lightning import Trainer
-from trainer import BertLabeling
-from utils.radom_seed import set_random_seed
+from train.mrc_ner_trainer import BertLabeling
+from utils.random_seed import set_random_seed
+
 set_random_seed(0)
+
 
 def evaluate(ckpt, hparams_file, gpus=[0, 1]):
     trainer = Trainer(gpus=gpus, distributed_backend="dp")
