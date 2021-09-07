@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # file: onto4.sh
-# dev Span-F1:
+# dev Span-F1: 79.18
 # test Span-F1: 80.35
 
 TIME=0826

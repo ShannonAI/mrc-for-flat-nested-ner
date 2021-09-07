@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # file: msra.sh
-# dev Span-F1:
+# dev Span-F1: 94.02
 # test Span-F1: 95.15
 
 TIME=0826

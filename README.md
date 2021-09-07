@@ -34,7 +34,8 @@ We release code, [scripts](./scripts/bert_tagger/reproduce) and [datafiles](./ne
 ### MRC-NER: Prepare Datasets
 
 You can [download](./ner2mrc/download.md) the preprocessed MRC-NER datasets used in our paper. <br>
-For custom datasets, please use `ner2mrc/mrsa2mrc.py` to transform your BMES NER annotations to MRC-format. 
+For flat NER datasets, please use `ner2mrc/mrsa2mrc.py` to transform your BMES NER annotations to MRC-format. <br>
+For nested NER datasets, please use `ner2mrc/genia2mrc.py` to transform your start-end NER annotations to MRC-format. <br>
 
 ### MRC-NER: Training
 
