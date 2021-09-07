@@ -27,16 +27,16 @@ We build our project on [pytorch-lightning.](https://github.com/PyTorchLightning
 If you want to know more about the arguments used in our training scripts, please 
 refer to [pytorch-lightning documentation.](https://pytorch-lightning.readthedocs.io/en/latest/)
 
-## Baseline: BERT-Tagger 
+### Baseline: BERT-Tagger 
 
 We release code, [scripts](./scripts/bert_tagger/reproduce) and [datafiles](./ner2mrc/download.md) for fine-tuning BERT and treating NER as a sequence labeling task. <br>
 
-## MRC-NER: Prepare Datasets
+### MRC-NER: Prepare Datasets
 
 You can [download](./ner2mrc/download.md) the preprocessed MRC-NER datasets used in our paper. <br>
 For custom datasets, please use `ner2mrc/mrsa2mrc.py` to transform your BMES NER annotations to MRC-format. 
 
-## MRC-NER: Train
+### MRC-NER: Training
 
 The main training procedure is in `train/mrc_ner_trainer.py`
 
@@ -46,12 +46,12 @@ For example, run `./scripts/mrc_ner/reproduce/ace04.sh` will start training MRC-
 During training, the model trainer will automatically evaluate on the dev set every `val_check_interval` epochs,
 and save the topk checkpoints to `$OUTPUT_DIR`. <br> 
 
-## MRC-NER: Evaluate
+### MRC-NER: Evaluation
 
 After training, you can find the best checkpoint on the dev set according to the evaluation results in `$OUTPUT_DIR/train_log.txt`. <br> 
 Then run `python3 evaluate/mrc_ner_evaluate.py $OUTPUT_DIR/<best_ckpt_on_dev>.ckpt  $OUTPUT_DIR/lightning_logs/<version_0/hparams.yaml>` to evaluate on the test set with the best checkpoint chosen on dev. 
 
-## MRC-NER: Inference 
+### MRC-NER: Inference 
 
 Code for inference using the trained MRC-NER model can be found in `inference/mrc_ner_inference.py` file. <br>
 For flat NER, we provide the inference script in [flat_inference.sh](./scripts/mrc_ner/flat_inference.sh) <br>
