@@ -18,26 +18,35 @@ MAXLEN=128
 MAXNORM=1.0
 INTER_HIDDEN=2048
 
+BATCH_SIZE=4
+PREC=16
+VAL_CKPT=0.25
+ACC_GRAD=2
+MAX_EPOCH=20
+SPAN_CANDI=pred_and_gold
+PROGRESS_BAR=1
+
 OUTPUT_DIR=/userhome/xiaoya/outputs/mrc-ner/${TIME}/ace2004/large_lr${LR}_drop${MRC_DROPOUT}_norm${MAXNORM}_weight${SPAN_WEIGHT}_warmup${WARMUP}_maxlen${MAXLEN}
 mkdir -p ${OUTPUT_DIR}
 
 CUDA_VISIBLE_DEVICES=0,1 python ${REPO_PATH}/train/mrc_ner_trainer.py \
+--gpus="2" \
+--distributed_backend=ddp \
+--workers 0 \
 --data_dir ${DATA_DIR} \
 --bert_config_dir ${BERT_DIR} \
 --max_length ${MAXLEN} \
---batch_size 4 \
---gpus="2" \
---precision=16 \
---progress_bar_refresh_rate 1 \
---lr $LR \
---distributed_backend=ddp \
---val_check_interval 0.25 \
---accumulate_grad_batches 2 \
+--batch_size ${BATCH_SIZE} \
+--precision=${PREC} \
+--progress_bar_refresh_rate ${PROGRESS_BAR} \
+--lr ${LR} \
+--val_check_interval ${VAL_CKPT} \
+--accumulate_grad_batches ${ACC_GRAD} \
 --default_root_dir ${OUTPUT_DIR} \
 --mrc_dropout ${MRC_DROPOUT}\
 --bert_dropout ${BERT_DROPOUT} \
---max_epochs 20 \
---span_loss_candidates pred_and_gold \
+--max_epochs ${MAX_EPOCH} \
+--span_loss_candidates ${SPAN_CANDI} \
 --weight_span ${SPAN_WEIGHT} \
 --warmup_steps ${WARMUP} \
 --gradient_clip_val ${MAXNORM} \
