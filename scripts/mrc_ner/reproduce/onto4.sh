@@ -15,7 +15,7 @@ MAXLENGTH=128
 WEIGHT_SPAN=0.1
 lr=1e-5
 OPTIMIZER=adamw
-INTER_HIDDEN=768
+INTER_HIDDEN=1536
 OUTPUT_DIR=/userhome/yuxian/train_logs/zh_onto/zh_onto_${OPTIMIZER}_lr${lr}_maxlen${MAXLENGTH}_spanw${WEIGHT_SPAN}
 mkdir -p $OUTPUT_DIR
 

@@ -15,7 +15,7 @@ SPAN_WEIGHT=0.1
 WARMUP=0
 MAXLEN=128
 MAXNORM=1.0
-INTER_HIDDEN=1024
+INTER_HIDDEN=2048
 
 OUTPUT_DIR=/userhome/xiaoya/outputs/mrc-ner/ace2004/large_lr${LR}_drop${MRC_DROPOUT}_norm${MAXNORM}_weight${SPAN_WEIGHT}_warmup${WARMUP}_maxlen${MAXLEN}
 mkdir -p $OUTPUT_DIR

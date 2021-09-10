@@ -13,7 +13,7 @@ SPAN_WEIGHT=0.1
 DROPOUT=0.2
 LR=8e-6
 MAXLEN=128
-INTER_HIDDEN=768
+INTER_HIDDEN=1536
 
 OUTPUT_DIR=/mnt/mrc/train_logs/zh_msra/zh_msra_bertlarge_lr${LR}20200913_dropout${DROPOUT}_maxlen${MAXLEN}
 

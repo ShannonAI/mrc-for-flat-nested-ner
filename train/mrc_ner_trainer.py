@@ -101,6 +101,7 @@ class BertLabeling(pl.LightningModule):
         parser.add_argument("--final_div_factor", type=float, default=1e4,
                             help="final div factor of linear decay scheduler")
         parser.add_argument("--lr_scheduler", type=str, default="onecycle", )
+        parser.add_argument("--lr_mini", type=float, default=-1)
         return parser
 
     def configure_optimizers(self):
@@ -139,7 +140,11 @@ class BertLabeling(pl.LightningModule):
         elif self.args.lr_scheduler == "linear":
             scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=self.args.warmup_steps, num_training_steps=t_total)
         elif self.args.lr_scheduler == "polydecay":
-            scheduler = get_polynomial_decay_schedule_with_warmup(optimizer, self.args.warmup_steps, t_total, lr_end=self.args.lr / 5)
+            if self.args.lr_mini == -1:
+                lr_mini = self.args.lr / 5
+            else:
+                lr_mini = self.args.lr_mini
+            scheduler = get_polynomial_decay_schedule_with_warmup(optimizer, self.args.warmup_steps, t_total, lr_end=lr_mini)
         else:
             raise ValueError
         return [optimizer], [{"scheduler": scheduler, "interval": "step"}]

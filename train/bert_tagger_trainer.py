@@ -94,6 +94,7 @@ class BertSequenceLabeling(pl.LightningModule):
         parser.add_argument("--do_lowercase", action="store_true", )
         parser.add_argument("--data_file_suffix", type=str, default=".char.bmes")
         parser.add_argument("--lr_scheulder", type=str, default="polydecay")
+        parser.add_argument("--lr_mini", type=float, default=-1)
         parser.add_argument("--warmup_proportion", default=0.1, type=float, help="Proportion of training to perform linear learning rate warmup for.")
 
         return parser
@@ -134,7 +135,11 @@ class BertSequenceLabeling(pl.LightningModule):
         elif self.args.lr_scheduler == "linear":
             scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=warmup_steps, num_training_steps=t_total)
         elif self.args.lr_scheulder == "polydecay":
-            scheduler = get_polynomial_decay_schedule_with_warmup(optimizer, warmup_steps, t_total, lr_end=self.args.lr / self.args.polydecay_ratio)
+            if self.args.lr_mini == -1:
+                lr_mini = self.args.lr / self.args.polydecay_ratio
+            else:
+                lr_mini = self.args.lr_mini
+            scheduler = get_polynomial_decay_schedule_with_warmup(optimizer, warmup_steps, t_total, lr_end=lr_mini)
         else:
             raise ValueError
         return [optimizer], [{"scheduler": scheduler, "interval": "step"}]
