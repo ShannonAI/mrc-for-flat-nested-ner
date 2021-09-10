@@ -3,10 +3,11 @@
 
 # file: ace04.sh
 
+TIME=0910
 REPO_PATH=/userhome/xiaoya/mrc-for-flat-nested-ner
 export PYTHONPATH="$PYTHONPATH:$REPO_PATH"
 DATA_DIR=/userhome/xiaoya/dataset/ace2004
-BERT_DIR=/userhome/xiaoya/bert/uncased_L-24_H-1024_A-16
+BERT_DIR=/userhome/xiaoya/bert/bert_uncased_large
 
 BERT_DROPOUT=0.1
 MRC_DROPOUT=0.3
@@ -17,13 +18,13 @@ MAXLEN=128
 MAXNORM=1.0
 INTER_HIDDEN=2048
 
-OUTPUT_DIR=/userhome/xiaoya/outputs/mrc-ner/ace2004/large_lr${LR}_drop${MRC_DROPOUT}_norm${MAXNORM}_weight${SPAN_WEIGHT}_warmup${WARMUP}_maxlen${MAXLEN}
-mkdir -p $OUTPUT_DIR
+OUTPUT_DIR=/userhome/xiaoya/outputs/mrc-ner/${TIME}/ace2004/large_lr${LR}_drop${MRC_DROPOUT}_norm${MAXNORM}_weight${SPAN_WEIGHT}_warmup${WARMUP}_maxlen${MAXLEN}
+mkdir -p ${OUTPUT_DIR}
 
 CUDA_VISIBLE_DEVICES=0,1 python ${REPO_PATH}/train/mrc_ner_trainer.py \
---data_dir $DATA_DIR \
---bert_config_dir $BERT_DIR \
---max_length $MAXLEN \
+--data_dir ${DATA_DIR} \
+--bert_config_dir ${BERT_DIR} \
+--max_length ${MAXLEN} \
 --batch_size 4 \
 --gpus="2" \
 --precision=16 \
@@ -32,14 +33,13 @@ CUDA_VISIBLE_DEVICES=0,1 python ${REPO_PATH}/train/mrc_ner_trainer.py \
 --distributed_backend=ddp \
 --val_check_interval 0.25 \
 --accumulate_grad_batches 2 \
---default_root_dir $OUTPUT_DIR \
---mrc_dropout $MRC_DROPOUT \
---bert_dropout $BERT_DROPOUT \
+--default_root_dir ${OUTPUT_DIR} \
+--mrc_dropout ${MRC_DROPOUT}\
+--bert_dropout ${BERT_DROPOUT} \
 --max_epochs 20 \
---span_loss_candidates "pred_and_gold" \
---weight_span $SPAN_WEIGHT \
---warmup_steps $WARMUP \
---max_length $MAXLEN \
---gradient_clip_val $MAXNORM \
+--span_loss_candidates pred_and_gold \
+--weight_span ${SPAN_WEIGHT} \
+--warmup_steps ${WARMUP} \
+--gradient_clip_val ${MAXNORM} \
 --classifier_intermediate_hidden_size ${INTER_HIDDEN}
 

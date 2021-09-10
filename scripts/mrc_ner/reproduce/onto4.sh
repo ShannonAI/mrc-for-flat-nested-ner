@@ -35,7 +35,7 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 python ${REPO_PATH}/train/mrc_ner_trainer.py \
 --default_root_dir $OUTPUT_DIR \
 --max_epochs 10 \
 --chinese \
---span_loss_candidates "pred_and_gold" \
+--span_loss_candidates pred_and_gold \
 --weight_span $WEIGHT_SPAN \
 --mrc_dropout 0.3 \
 --warmup_steps 5000 \

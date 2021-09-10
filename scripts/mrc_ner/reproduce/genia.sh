@@ -36,10 +36,9 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 python ${REPO_PATH}/train/mrc_ner_trainer.py \
 --mrc_dropout $MRC_DROPOUT \
 --bert_dropout $BERT_DROPOUT \
 --max_epochs 20 \
---span_loss_candidates "pred_and_gold" \
+--span_loss_candidates pred_and_gold \
 --weight_span $SPAN_WEIGHT \
 --warmup_steps $WARMUP \
---max_length $MAXLEN \
 --gradient_clip_val $MAXNORM \
 --weight_decay 0.002 \
 --classifier_intermediate_hidden_size ${INTER_HIDDEN}

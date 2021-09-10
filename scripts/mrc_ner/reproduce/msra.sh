@@ -36,6 +36,6 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 python ${REPO_PATH}/train/mrc_ner_trainer.py \
 --mrc_dropout $DROPOUT \
 --max_epochs 20 \
 --weight_span $SPAN_WEIGHT \
---span_loss_candidates "pred_and_gold" \
+--span_loss_candidates pred_and_gold \
 --classifier_intermediate_hidden_size ${INTER_HIDDEN}
 
