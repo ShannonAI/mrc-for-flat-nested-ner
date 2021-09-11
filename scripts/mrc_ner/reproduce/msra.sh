@@ -27,8 +27,8 @@ OUTPUT_DIR=/mnt/mrc/train_logs/zh_msra/zh_msra_bertlarge_lr${LR}20200913_dropout
 
 mkdir -p ${OUTPUT_DIR}
 
-CUDA_VISIBLE_DEVICES=0,1,2,3 python ${REPO_PATH}/train/mrc_ner_trainer.py \
---gpus="4" \
+CUDA_VISIBLE_DEVICES=0,1 python ${REPO_PATH}/train/mrc_ner_trainer.py \
+--gpus="2" \
 --distributed_backend=ddp \
 --data_dir ${DATA_DIR} \
 --bert_config_dir ${BERT_DIR} \

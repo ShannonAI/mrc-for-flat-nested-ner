@@ -27,7 +27,7 @@ SPAN_CANDI=pred_and_gold
 PROGRESS_BAR=1
 OPTIM=adamw
 
-OUTPUT_DIR=/userhome/xiaoya/outputs/mrc-ner/ace2005/warmup${WARMUP}lr${LR}_drop${MRC_DROPOUT}_norm${MAXNORM}_weight${SPAN_WEIGHT}_warmup${WARMUP}_maxlen${MAXLEN}
+OUTPUT_DIR=/userhome/xiaoya/outputs/mrc_ner/ace2005/warmup${WARMUP}lr${LR}_drop${MRC_DROPOUT}_norm${MAXNORM}_weight${SPAN_WEIGHT}_warmup${WARMUP}_maxlen${MAXLEN}
 mkdir -p ${OUTPUT_DIR}
 
 CUDA_VISIBLE_DEVICES=0,1,2,3 python ${REPO_PATH}/train/mrc_ner_trainer.py \

@@ -26,7 +26,7 @@ MAX_EPOCH=20
 SPAN_CANDI=pred_and_gold
 PROGRESS_BAR=1
 
-OUTPUT_DIR=/userhome/xiaoya/outputs/mrc-ner/${TIME}/ace2004/large_lr${LR}_drop${MRC_DROPOUT}_norm${MAXNORM}_weight${SPAN_WEIGHT}_warmup${WARMUP}_maxlen${MAXLEN}
+OUTPUT_DIR=/userhome/xiaoya/outputs/mrc_ner/${TIME}/ace2004/large_lr${LR}_drop${MRC_DROPOUT}_norm${MAXNORM}_weight${SPAN_WEIGHT}_warmup${WARMUP}_maxlen${MAXLEN}
 mkdir -p ${OUTPUT_DIR}
 
 CUDA_VISIBLE_DEVICES=0,1 python ${REPO_PATH}/train/mrc_ner_trainer.py \

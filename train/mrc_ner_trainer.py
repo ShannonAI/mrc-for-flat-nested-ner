@@ -310,7 +310,7 @@ class BertLabeling(pl.LightningModule):
         span_recall = span_tp / (span_tp + span_fn + 1e-10)
         span_precision = span_tp / (span_tp + span_fp + 1e-10)
         span_f1 = span_precision * span_recall * 2 / (span_recall + span_precision + 1e-10)
-
+        print(f"TEST INFO -> test_f1 is: {span_f1} precision: {span_precision}, recall: {span_recall}")
         self.result_logger.info(f"TEST INFO -> test_f1 is: {span_f1} precision: {span_precision}, recall: {span_recall}")
         return {'log': tensorboard_logs}
 

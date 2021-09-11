@@ -28,7 +28,7 @@ WARMUP_PROPORTION=0.02
 INTER_HIDDEN=768
 
 OUTPUT_DIR=/userhome/xiaoya/outputs/mrc_ner_baseline/${TIME}/${FILE}_chinese_lr${LR}_drop${MRC_DROPOUT}_norm${MAXNORM}_weight${SPAN_WEIGHT}_warmup${WARMUP}_maxlen${MAXLEN}
-mkdir -p $OUTPUT_DIR
+mkdir -p ${OUTPUT_DIR}
 
 
 CUDA_VISIBLE_DEVICES=1 python3 ${REPO_PATH}/train/bert_tagger_trainer.py \

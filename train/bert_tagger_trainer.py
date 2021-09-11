@@ -231,6 +231,7 @@ class BertSequenceLabeling(pl.LightningModule):
         tensorboard_logs[f"span_precision"] = span_precision
         tensorboard_logs[f"span_recall"] = span_recall
         tensorboard_logs[f"span_f1"] = span_f1
+        print(f"TEST INFO -> test_f1 is: {span_f1} precision: {span_precision}, recall: {span_recall}")
         self.result_logger.info(f"EVAL INFO -> test_f1 is: {span_f1}, test_precision is: {span_precision}, test_recall is: {span_recall}")
 
         return {'test_loss': avg_loss, 'log': tensorboard_logs}
