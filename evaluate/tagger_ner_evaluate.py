@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# file: mrc_ner_evaluate.py
+# file: tagger_ner_evaluate.py
 # example command:
-# python3 mrc_ner_evaluate.py /data/xiaoya/outputs/mrc_ner/ace2004/debug_lr3e-5_drop0.3_norm1.0_weight0.1_warmup0_maxlen100/epoch=0.ckpt \
-# /data/xiaoya/outputs/mrc_ner/ace2004/debug_lr3e-5_drop0.3_norm1.0_weight0.1_warmup0_maxlen100/lightning_logs/version_2/hparams.yaml
+
 
 import sys
 from pytorch_lightning import Trainer
-from train.mrc_ner_trainer import BertLabeling
+from train.bert_tagger_trainer import BertSequenceLabeling
 from utils.random_seed import set_random_seed
 
 set_random_seed(0)
@@ -17,7 +16,7 @@ set_random_seed(0)
 def evaluate(ckpt, hparams_file, gpus=[0, 1], max_length=300):
     trainer = Trainer(gpus=gpus, distributed_backend="dp")
 
-    model = BertLabeling.load_from_checkpoint(
+    model = BertSequenceLabeling.load_from_checkpoint(
         checkpoint_path=ckpt,
         hparams_file=hparams_file,
         map_location=None,
@@ -35,6 +34,7 @@ if __name__ == '__main__':
     # GPUS="1,2,3"
     CHECKPOINTS = sys.argv[1]
     HPARAMS = sys.argv[2]
+
     try:
         GPUS = [int(gpu_item) for gpu_item in sys.argv[3].strip().split(",")]
     except:
@@ -45,4 +45,4 @@ if __name__ == '__main__':
     except:
         MAXLEN = 300
 
-    evaluate(ckpt=CHECKPOINTS, hparams_file=HPARAMS, gpus=GPUS, max_length=MAXLEN)
+    evaluate(ckpt=CHECKPOINTS, hparams_file=HPARAMS, gpus=GPUS, max_length=MAXLEN, )

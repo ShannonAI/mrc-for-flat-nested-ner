@@ -273,7 +273,7 @@ class BertLabeling(pl.LightningModule):
         avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
         tensorboard_logs = {'val_loss': avg_loss}
 
-        all_counts = torch.stack([x[f'span_f1_stats'] for x in outputs]).sum(0)
+        all_counts = torch.stack([x[f'span_f1_stats'] for x in outputs]).view(-1, 3).sum(0)
         span_tp, span_fp, span_fn = all_counts
         span_recall = span_tp / (span_tp + span_fn + 1e-10)
         span_precision = span_tp / (span_tp + span_fp + 1e-10)
@@ -305,7 +305,7 @@ class BertLabeling(pl.LightningModule):
     def test_epoch_end(self, outputs) -> Dict[str, Dict[str, Tensor]]:
         tensorboard_logs = {}
 
-        all_counts = torch.stack([x[f'span_f1_stats'] for x in outputs]).sum(0)
+        all_counts = torch.stack([x[f'span_f1_stats'] for x in outputs]).view(-1, 3).sum(0)
         span_tp, span_fp, span_fn = all_counts
         span_recall = span_tp / (span_tp + span_fn + 1e-10)
         span_precision = span_tp / (span_tp + span_fp + 1e-10)
