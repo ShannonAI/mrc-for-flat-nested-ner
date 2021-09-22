@@ -94,6 +94,7 @@ class BertSequenceLabeling(pl.LightningModule):
         parser.add_argument("--do_lowercase", action="store_true", )
         parser.add_argument("--data_file_suffix", type=str, default=".char.bmes")
         parser.add_argument("--lr_scheulder", type=str, default="polydecay")
+        parser.add_argument("--lr_mini", type=float, default=-1)
         parser.add_argument("--warmup_proportion", default=0.1, type=float, help="Proportion of training to perform linear learning rate warmup for.")
 
         return parser
@@ -134,7 +135,11 @@ class BertSequenceLabeling(pl.LightningModule):
         elif self.args.lr_scheduler == "linear":
             scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=warmup_steps, num_training_steps=t_total)
         elif self.args.lr_scheulder == "polydecay":
-            scheduler = get_polynomial_decay_schedule_with_warmup(optimizer, warmup_steps, t_total, lr_end=self.args.lr / self.args.polydecay_ratio)
+            if self.args.lr_mini == -1:
+                lr_mini = self.args.lr / self.args.polydecay_ratio
+            else:
+                lr_mini = self.args.lr_mini
+            scheduler = get_polynomial_decay_schedule_with_warmup(optimizer, warmup_steps, t_total, lr_end=lr_mini)
         else:
             raise ValueError
         return [optimizer], [{"scheduler": scheduler, "interval": "step"}]
@@ -184,7 +189,7 @@ class BertSequenceLabeling(pl.LightningModule):
         avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
         tensorboard_logs = {'val_loss': avg_loss}
 
-        all_counts = torch.stack([x[f'span_f1_stats'] for x in outputs]).sum(0)
+        all_counts = torch.stack([x[f'span_f1_stats'] for x in outputs]).view(-1, 3).sum(0)
         span_tp, span_fp, span_fn = all_counts
         span_recall = span_tp / (span_tp + span_fn + 1e-10)
         span_precision = span_tp / (span_tp + span_fp + 1e-10)
@@ -218,7 +223,7 @@ class BertSequenceLabeling(pl.LightningModule):
         avg_loss = torch.stack([x['test_loss'] for x in outputs]).mean()
         tensorboard_logs = {'test_loss': avg_loss}
 
-        all_counts = torch.stack([x[f'span_f1_stats'] for x in outputs]).sum(0)
+        all_counts = torch.stack([x[f'span_f1_stats'] for x in outputs]).view(-1, 3).sum(0)
         span_tp, span_fp, span_fn = all_counts
         span_recall = span_tp / (span_tp + span_fn + 1e-10)
         span_precision = span_tp / (span_tp + span_fp + 1e-10)
@@ -226,6 +231,7 @@ class BertSequenceLabeling(pl.LightningModule):
         tensorboard_logs[f"span_precision"] = span_precision
         tensorboard_logs[f"span_recall"] = span_recall
         tensorboard_logs[f"span_f1"] = span_f1
+        print(f"TEST INFO -> test_f1 is: {span_f1} precision: {span_precision}, recall: {span_recall}")
         self.result_logger.info(f"EVAL INFO -> test_f1 is: {span_f1}, test_precision is: {span_precision}, test_recall is: {span_recall}")
 
         return {'test_loss': avg_loss, 'log': tensorboard_logs}

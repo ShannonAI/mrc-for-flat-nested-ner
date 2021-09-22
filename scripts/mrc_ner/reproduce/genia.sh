@@ -15,32 +15,41 @@ SPAN_WEIGHT=0.1
 WARMUP=0
 MAXLEN=180
 MAXNORM=1.0
-INTER_HIDDEN=1024
+INTER_HIDDEN=2048
+
+BATCH_SIZE=8
+PREC=16
+VAL_CKPT=0.25
+ACC_GRAD=4
+MAX_EPOCH=20
+SPAN_CANDI=pred_and_gold
+PROGRESS_BAR=1
+WEIGHT_DECAY=0.002
 
 OUTPUT_DIR=/userhome/xiaoya/outputs/github_mrc/genia/large_lr${LR}_drop${MRC_DROPOUT}_norm${MAXNORM}_bsz32_hard_span_weight${SPAN_WEIGHT}_warmup${WARMUP}_maxlen${MAXLEN}
-mkdir -p $OUTPUT_DIR
+mkdir -p ${OUTPUT_DIR}
 
 CUDA_VISIBLE_DEVICES=0,1,2,3 python ${REPO_PATH}/train/mrc_ner_trainer.py \
---data_dir $DATA_DIR \
---bert_config_dir $BERT_DIR \
---max_length $MAXLEN \
---batch_size 8 \
 --gpus="4" \
---precision=16 \
---progress_bar_refresh_rate 1 \
---lr $LR \
 --distributed_backend=ddp \
---val_check_interval 0.25 \
---accumulate_grad_batches 4 \
---default_root_dir $OUTPUT_DIR \
---mrc_dropout $MRC_DROPOUT \
---bert_dropout $BERT_DROPOUT \
---max_epochs 20 \
---span_loss_candidates "pred_and_gold" \
---weight_span $SPAN_WEIGHT \
---warmup_steps $WARMUP \
---max_length $MAXLEN \
---gradient_clip_val $MAXNORM \
---weight_decay 0.002 \
+--workers 0 \
+--data_dir ${DATA_DIR} \
+--bert_config_dir ${BERT_DIR} \
+--max_length ${MAXLEN} \
+--batch_size ${BATCH_SIZE} \
+--precision=${PREC} \
+--progress_bar_refresh_rate ${PROGRESS_BAR} \
+--lr ${LR} \
+--val_check_interval ${VAL_CKPT} \
+--accumulate_grad_batches ${ACC_GRAD} \
+--default_root_dir ${OUTPUT_DIR} \
+--mrc_dropout ${MRC_DROPOUT} \
+--bert_dropout ${BERT_DROPOUT} \
+--max_epochs ${MAX_EPOCH} \
+--span_loss_candidates ${SPAN_CANDI} \
+--weight_span ${SPAN_WEIGHT} \
+--warmup_steps ${WARMUP} \
+--gradient_clip_val ${MAXNORM} \
+--weight_decay ${WEIGHT_DECAY} \
 --classifier_intermediate_hidden_size ${INTER_HIDDEN}
 

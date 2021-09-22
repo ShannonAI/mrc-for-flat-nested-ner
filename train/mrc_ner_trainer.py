@@ -101,6 +101,7 @@ class BertLabeling(pl.LightningModule):
         parser.add_argument("--final_div_factor", type=float, default=1e4,
                             help="final div factor of linear decay scheduler")
         parser.add_argument("--lr_scheduler", type=str, default="onecycle", )
+        parser.add_argument("--lr_mini", type=float, default=-1)
         return parser
 
     def configure_optimizers(self):
@@ -139,7 +140,11 @@ class BertLabeling(pl.LightningModule):
         elif self.args.lr_scheduler == "linear":
             scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=self.args.warmup_steps, num_training_steps=t_total)
         elif self.args.lr_scheduler == "polydecay":
-            scheduler = get_polynomial_decay_schedule_with_warmup(optimizer, self.args.warmup_steps, t_total, lr_end=self.args.lr / 5)
+            if self.args.lr_mini == -1:
+                lr_mini = self.args.lr / 5
+            else:
+                lr_mini = self.args.lr_mini
+            scheduler = get_polynomial_decay_schedule_with_warmup(optimizer, self.args.warmup_steps, t_total, lr_end=lr_mini)
         else:
             raise ValueError
         return [optimizer], [{"scheduler": scheduler, "interval": "step"}]
@@ -268,7 +273,7 @@ class BertLabeling(pl.LightningModule):
         avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
         tensorboard_logs = {'val_loss': avg_loss}
 
-        all_counts = torch.stack([x[f'span_f1_stats'] for x in outputs]).sum(0)
+        all_counts = torch.stack([x[f'span_f1_stats'] for x in outputs]).view(-1, 3).sum(0)
         span_tp, span_fp, span_fn = all_counts
         span_recall = span_tp / (span_tp + span_fn + 1e-10)
         span_precision = span_tp / (span_tp + span_fp + 1e-10)
@@ -300,12 +305,12 @@ class BertLabeling(pl.LightningModule):
     def test_epoch_end(self, outputs) -> Dict[str, Dict[str, Tensor]]:
         tensorboard_logs = {}
 
-        all_counts = torch.stack([x[f'span_f1_stats'] for x in outputs]).sum(0)
+        all_counts = torch.stack([x[f'span_f1_stats'] for x in outputs]).view(-1, 3).sum(0)
         span_tp, span_fp, span_fn = all_counts
         span_recall = span_tp / (span_tp + span_fn + 1e-10)
         span_precision = span_tp / (span_tp + span_fp + 1e-10)
         span_f1 = span_precision * span_recall * 2 / (span_recall + span_precision + 1e-10)
-
+        print(f"TEST INFO -> test_f1 is: {span_f1} precision: {span_precision}, recall: {span_recall}")
         self.result_logger.info(f"TEST INFO -> test_f1 is: {span_f1} precision: {span_precision}, recall: {span_recall}")
         return {'log': tensorboard_logs}
 
@@ -417,7 +422,6 @@ def main():
     model.result_logger.info(f"Best checkpoint on DEV set is {path_to_best_checkpoint}")
     checkpoint = torch.load(path_to_best_checkpoint)
     model.load_state_dict(checkpoint['state_dict'])
-    trainer.test(model)
     model.result_logger.info("=&" * 20)
 
 
