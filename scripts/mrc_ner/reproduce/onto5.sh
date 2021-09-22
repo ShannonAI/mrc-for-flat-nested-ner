@@ -34,7 +34,7 @@ OUTPUT_DIR=/userhome/xiaoya/outputs/mrc_ner/${TIME}/${FILE}_cased_large_lr${LR}_
 mkdir -p ${OUTPUT_DIR}
 
 
-CUDA_VISIBLE_DEVICES=0,1,2,3 python ${REPO_PATH}/train/mrc_ner_trainer.py \
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python ${REPO_PATH}/train/mrc_ner_trainer.py \
 --data_dir ${DATA_DIR} \
 --bert_config_dir ${BERT_DIR} \
 --max_length ${MAXLEN} \

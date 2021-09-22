@@ -422,7 +422,6 @@ def main():
     model.result_logger.info(f"Best checkpoint on DEV set is {path_to_best_checkpoint}")
     checkpoint = torch.load(path_to_best_checkpoint)
     model.load_state_dict(checkpoint['state_dict'])
-    trainer.test(model)
     model.result_logger.info("=&" * 20)
 
 
