@@ -43,7 +43,7 @@ CUDA_VISIBLE_DEVICES=0,1 python ${REPO_PATH}/train/mrc_ner_trainer.py \
 --val_check_interval ${VAL_CKPT} \
 --accumulate_grad_batches ${ACC_GRAD} \
 --default_root_dir ${OUTPUT_DIR} \
---mrc_dropout ${MRC_DROPOUT}\
+--mrc_dropout ${MRC_DROPOUT} \
 --bert_dropout ${BERT_DROPOUT} \
 --max_epochs ${MAX_EPOCH} \
 --span_loss_candidates ${SPAN_CANDI} \
